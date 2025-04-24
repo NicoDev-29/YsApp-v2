@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ysa_app/ui/screens/home_screen.dart';
-import 'menu_screen.dart';
+import 'screens_exports.dart';
 import '../../themes/theme.dart';
+import '../widgets/widgets_exports.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,7 +11,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _obscurePassword = true;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -33,35 +34,38 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Correo
-              _buildInputField(label: "CORREO"),
+              CustomInputField(
+                label: "CORREO",
+                inputType: TextInputType.emailAddress,
+                controller: _emailController,
+              ),
 
               const SizedBox(height: 20),
 
-              // Contraseña
-              _buildPasswordField(),
+              CustomPasswordField(
+                label: "CONTRASEÑA",
+                controller: _passwordController,
+              ),
 
               const SizedBox(height: 10),
 
-              // ¿Olvidaste tu contraseña?
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {},
                   child: const Text(
                     "¿Olvidaste tu contraseña?",
-                    style: TextStyle(color: AppColors.black),
+                    style: TextStyle(color: AppColors.tertiary),
                   ),
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              // Botón Iniciar Sesión
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.black, // color de fondo
-                  foregroundColor: AppColors.white, // color del texto
+                  backgroundColor: AppColors.tertiary,
+                  foregroundColor: Colors.white,
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -82,58 +86,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildInputField({required String label}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 5),
-        TextField(
-          keyboardType: TextInputType.emailAddress,
-          decoration: const InputDecoration(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "CONTRASEÑA",
-          style: TextStyle(
-            color: AppColors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 5),
-        TextField(
-          obscureText: _obscurePassword,
-          decoration: InputDecoration(
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: Colors.grey,
-              ),
-              onPressed: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

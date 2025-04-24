@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
-import '../../themes/theme.dart'; 
+import 'screens_exports.dart';
+import '../../themes/theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Obtener las dimensiones de la pantalla
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.gradient1, 
+              AppColors.gradient1,
               AppColors.gradient2,
-              AppColors.gradient3,
             ],
           ),
         ),
@@ -28,25 +27,24 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-              // Fila 1
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _menuItem("assets/item1.png", "EMPLEADAS", screenWidth),
+                  _menuItem(
+                      "assets/employee.png", "EMPLEADAS", screenWidth, context),
                   const SizedBox(width: 20),
-                  _menuItem("assets/item3.png", "VENTAS", screenWidth),
+                  _menuItem("assets/item3.png", "VENTAS", screenWidth, context),
                 ],
               ),
-            
               const SizedBox(height: 50),
-
-              // Fila 2
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _menuItem("assets/item4.png", "INVENTARIO", screenWidth),
+                  _menuItem(
+                      "assets/item4.png", "INVENTARIO", screenWidth, context),
                   const SizedBox(width: 20),
-                  _menuItem("assets/item5.png", "REPORTES", screenWidth),
+                  _menuItem(
+                      "assets/item5.png", "REPORTES", screenWidth, context),
                 ],
               ),
               const SizedBox(height: 20),
@@ -58,9 +56,9 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// Widget para el menu
-Widget _menuItem(String imagePath, String title, double screenWidth) {
-  double buttonWidth = screenWidth * 0.4; 
+Widget _menuItem(
+    String imagePath, String title, double screenWidth, BuildContext context) {
+  double buttonWidth = screenWidth * 0.4;
 
   return Column(
     mainAxisSize: MainAxisSize.min,
@@ -68,15 +66,23 @@ Widget _menuItem(String imagePath, String title, double screenWidth) {
       Image.asset(imagePath, width: 120, height: 120),
       const SizedBox(height: 10),
       SizedBox(
-        width: buttonWidth, 
+        width: buttonWidth,
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            if (title == "EMPLEADAS") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const EmployeesScreen()),
+              );
+            }
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13), 
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
           ),
           child: Text(
             title,
