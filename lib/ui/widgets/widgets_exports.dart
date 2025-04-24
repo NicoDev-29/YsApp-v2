@@ -8,3 +8,6 @@ export 'custom_back_button.dart';
 export 'custom_button.dart';
 export 'custom_dropdown_field.dart';
 export 'custom_dialog.dart';
+export 'inventory_menu_button.dart';
+export 'inventory_section_tittle.dart';
+export 'new_category_dialog.dart';

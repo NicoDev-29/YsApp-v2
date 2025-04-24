@@ -10,12 +10,12 @@ class EmployeeCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   const EmployeeCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.location,
     required this.onEdit,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   void _showDeleteConfirmation(BuildContext context) {
     CustomDialog.show(
@@ -88,10 +88,30 @@ class EmployeeCard extends StatelessWidget {
             IconButton(
               iconSize: iconButtonSize,
               icon: Icon(Icons.edit, color: AppColors.primary),
-              onPressed: (){Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const EditEmployeeScreen() ),
-                    );},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        const EditEmployeeScreen(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.ease;
+
+                      final tween = Tween(begin: begin, end: end)
+                          .chain(CurveTween(curve: curve));
+                      final offsetAnimation = animation.drive(tween);
+
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
             ),
             IconButton(
               iconSize: iconButtonSize,

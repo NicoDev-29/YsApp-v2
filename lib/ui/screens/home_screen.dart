@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _menuItem(
-                      "assets/employee.png", "EMPLEADAS", screenWidth, context),
+                      "assets/employee.png", "PERSONAL", screenWidth, context),
                   const SizedBox(width: 20),
                   _menuItem("assets/item3.png", "VENTAS", screenWidth, context),
                 ],
@@ -69,11 +69,17 @@ Widget _menuItem(
         width: buttonWidth,
         child: ElevatedButton(
           onPressed: () {
-            if (title == "EMPLEADAS") {
+            if (title == "PERSONAL") {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const EmployeesScreen()),
+              );
+            } else if (title == "INVENTARIO") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const InventoryScreen()),
               );
             }
           },

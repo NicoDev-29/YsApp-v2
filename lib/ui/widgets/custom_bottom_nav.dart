@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ysa_app/themes/theme.dart';
-
+import 'package:ysa_app/ui/screens/screens_exports.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -43,10 +43,34 @@ class CustomBottomNav extends StatelessWidget {
               color: isSelected ? AppColors.tertiary : AppColors.secondary,
               size: 32,
             ),
-            onPressed: () => onTap(index),
+            onPressed: () => _onItemTapped(context, index), 
           );
         }),
       ),
+    );
+  }
+
+  void _onItemTapped(BuildContext context, int index) {
+    // Definimos las rutas según el índice
+    Widget screen;
+    switch (index) {
+      case 0:
+        screen = const EmployeesScreen();
+        break;
+      case 1:
+        screen = const InventoryScreen();
+        break;
+      case 2:
+        screen = const HomeScreen();
+        break;
+      default:
+        screen = const EmployeesScreen(); 
+    }
+
+    // Navega a la pantalla seleccionada
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => screen),
     );
   }
 }
