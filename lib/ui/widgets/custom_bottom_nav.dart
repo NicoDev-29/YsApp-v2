@@ -63,6 +63,9 @@ class CustomBottomNav extends StatelessWidget {
       case 2:
         screen = const HomeScreen();
         break;
+      case 3:
+        screen =  SalesScreen();
+        break;
       default:
         screen = const EmployeesScreen(); 
     }

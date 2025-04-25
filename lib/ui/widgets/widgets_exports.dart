@@ -15,3 +15,5 @@ export  'cuantity_selector.dart';
 export 'product_card.dart';
 export 'filter_selector.dart';
 export 'service_card.dart';
+export 'sale_dart.dart';
+export 'sale_item_row.dart';

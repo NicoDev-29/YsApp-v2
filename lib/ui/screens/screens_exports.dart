@@ -11,3 +11,5 @@ export 'inventory/product_list_screen.dart';
 export 'inventory/edit_product_screen.dart';
 export 'inventory/add_service_screen.dart';
 export 'inventory/service_list_screen.dart';
+export 'sales/add_sale_screen.dart';
+export 'sales/sales_screen.dart';

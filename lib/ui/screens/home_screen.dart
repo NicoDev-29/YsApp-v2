@@ -81,6 +81,12 @@ Widget _menuItem(
                 MaterialPageRoute(
                     builder: (context) => const InventoryScreen()),
               );
+            } else if (title == "VENTAS"){
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>  SalesScreen()),
+              );
             }
           },
           style: ElevatedButton.styleFrom(
