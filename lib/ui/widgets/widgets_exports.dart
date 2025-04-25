@@ -11,3 +11,7 @@ export 'custom_dialog.dart';
 export 'inventory_menu_button.dart';
 export 'inventory_section_tittle.dart';
 export 'new_category_dialog.dart';
+export  'cuantity_selector.dart';
+export 'product_card.dart';
+export 'filter_selector.dart';
+export 'service_card.dart';

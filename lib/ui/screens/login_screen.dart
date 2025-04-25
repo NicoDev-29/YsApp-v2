@@ -35,8 +35,8 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 30),
 
               CustomInputField(
-                label: "CORREO",
-                inputType: TextInputType.emailAddress,
+                label: "NOMBRE USUARIO",
+                inputType: TextInputType.name,
                 controller: _emailController,
               ),
 

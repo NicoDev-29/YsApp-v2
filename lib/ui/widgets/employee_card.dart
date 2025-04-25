@@ -1,34 +1,46 @@
 import 'package:flutter/material.dart';
 import '/../themes/theme.dart';
-import 'widgets_exports.dart';
-import '../screens/screens_exports.dart';
+import  '../widgets/widgets_exports.dart';
 
 class EmployeeCard extends StatelessWidget {
   final String name;
+  final String username; 
   final String location;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final IconData deleteIcon;
+  final String deleteTooltip;
+  final bool isActive;
 
   const EmployeeCard({
     super.key,
     required this.name,
+    required this.username,  
     required this.location,
     required this.onEdit,
     required this.onDelete,
+    required this.deleteIcon,
+    required this.deleteTooltip,
+    required this.isActive,
   });
 
-  void _showDeleteConfirmation(BuildContext context) {
+  void _showDeactivateConfirmation(BuildContext context) {
+    final action = isActive ? 'desactivar' : 'activar';
+    final contentMessage = isActive
+        ? 'Esta persona será desactivada y no aparecerá como activa.'
+        : 'Esta persona será activada y podrá volver a aparecer en la lista activa.';
+
     CustomDialog.show(
       context: context,
-      title: "¿Eliminar trabajadora?",
-      content: "Esta persona se quitará de la lista.",
+      title: "¿Quieres $action a esta trabajadora?",
+      content: contentMessage,
       actions: [
         TextButton(
           child: const Text("Cancelar"),
           onPressed: () => Navigator.of(context).pop(),
         ),
         TextButton(
-          child: const Text("Eliminar"),
+          child: Text(action[0].toUpperCase() + action.substring(1)),
           onPressed: () {
             Navigator.of(context).pop();
             onDelete();
@@ -49,6 +61,7 @@ class EmployeeCard extends StatelessWidget {
     final paddingAll = (screenWidth * 0.04).clamp(12.0, 20.0);
 
     final nameFontSize = (screenHeight * 0.020).clamp(14.0, 20.0);
+    final usernameFontSize = (screenHeight * 0.018).clamp(12.0, 18.0);
     final locationFontSize = (screenHeight * 0.018).clamp(12.0, 16.0);
     final iconButtonSize = (screenWidth * 0.07).clamp(24.0, 32.0);
 
@@ -73,8 +86,19 @@ class EmployeeCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: nameFontSize,
                       fontWeight: FontWeight.bold,
+                      color: isActive ? Colors.black : Colors.grey,
                     ),
                   ),
+                  SizedBox(height: 4),
+                  Text(
+                    username,
+                    style: TextStyle(
+                      fontSize: usernameFontSize,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 4),
                   Text(
                     location,
                     style: TextStyle(
@@ -88,35 +112,14 @@ class EmployeeCard extends StatelessWidget {
             IconButton(
               iconSize: iconButtonSize,
               icon: Icon(Icons.edit, color: AppColors.primary),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        const EditEmployeeScreen(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      const begin = Offset(1.0, 0.0);
-                      const end = Offset.zero;
-                      const curve = Curves.ease;
-
-                      final tween = Tween(begin: begin, end: end)
-                          .chain(CurveTween(curve: curve));
-                      final offsetAnimation = animation.drive(tween);
-
-                      return SlideTransition(
-                        position: offsetAnimation,
-                        child: child,
-                      );
-                    },
-                  ),
-                );
-              },
+              onPressed: onEdit,
+              tooltip: 'Editar',
             ),
             IconButton(
               iconSize: iconButtonSize,
-              icon: Icon(Icons.delete, color: AppColors.primary),
-              onPressed: () => _showDeleteConfirmation(context),
+              icon: Icon(deleteIcon, color: AppColors.primary),
+              onPressed: () => _showDeactivateConfirmation(context),
+              tooltip: deleteTooltip,
             ),
           ],
         ),

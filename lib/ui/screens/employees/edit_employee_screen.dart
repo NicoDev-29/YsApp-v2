@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import '/../themes/theme.dart';
-import '../../widgets/widgets_exports.dart'; 
+import '../../widgets/widgets_exports.dart';
+import '/../models/models_exports.dart';
 
 class EditEmployeeScreen extends StatefulWidget {
-  const EditEmployeeScreen({super.key});
+  final Employee employee;
+
+  const EditEmployeeScreen({Key? key, required this.employee}) : super(key: key);
 
   @override
-  State<EditEmployeeScreen> createState() => _AddEmployeeScreenState();
+  State<EditEmployeeScreen> createState() => _EditEmployeeScreenState();
 }
 
-class _AddEmployeeScreenState extends State<EditEmployeeScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
+  late TextEditingController _nameController;
+  late TextEditingController _usernameController;
+  late TextEditingController _passwordController;
 
   String? _selectedSede;
 
@@ -21,6 +25,23 @@ class _AddEmployeeScreenState extends State<EditEmployeeScreen> {
     'Local 3',
     'Local 4',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.employee.name);
+    _usernameController = TextEditingController(text: widget.employee.username);
+    _passwordController = TextEditingController(); // Normalmente no se muestra la contraseña
+    _selectedSede = widget.employee.location;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +106,11 @@ class _AddEmployeeScreenState extends State<EditEmployeeScreen> {
                           controller: _nameController,
                         ),
                         SizedBox(height: inputVerticalSpacing),
+                        CustomInputField(
+                          label: 'Nombre Usuario',
+                          controller: _usernameController,
+                        ),
+                        SizedBox(height: inputVerticalSpacing),
                         CustomDropdownField<String>(
                           label: 'Sede',
                           value: _selectedSede,
@@ -110,7 +136,8 @@ class _AddEmployeeScreenState extends State<EditEmployeeScreen> {
                           child: CustomButton(
                             label: 'GUARDAR',
                             onPressed: () {
-                              // Acción de registrar
+                              // Aquí implementa la lógica para guardar los cambios
+                              // Puedes validar campos y actualizar la información
                             },
                             backgroundColor: AppColors.tertiary,
                             foregroundColor: AppColors.secondary,

@@ -61,9 +61,9 @@ class _NewCategoryDialogState extends State<NewCategoryDialog> {
                 style: TextStyle(fontSize: fontSize),
               ),
             ),
-            SizedBox(height: screenHeight * 0.01), // Menos espacio entre el input y el botón
+            SizedBox(height: screenHeight * 0.01), 
             Align(
-              alignment: Alignment.bottomRight, // Alinea el botón a la derecha
+              alignment: Alignment.bottomRight,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop(_categoryNameController.text);
@@ -72,10 +72,10 @@ class _NewCategoryDialogState extends State<NewCategoryDialog> {
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.05, // Padding horizontal más pequeño
-                    vertical: screenHeight * 0.01, // Padding vertical más pequeño
+                    horizontal: screenWidth * 0.05, 
+                    vertical: screenHeight * 0.01, 
                   ),
-                  textStyle: TextStyle(fontSize: fontSize * 0.9), // Texto más pequeño
+                  textStyle: TextStyle(fontSize: fontSize * 0.9),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(borderRadius / 2),
                   ),

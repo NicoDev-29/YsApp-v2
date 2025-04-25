@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '/../themes/theme.dart';
 import '../../widgets/widgets_exports.dart'; 
 
-
 class AddEmployeeScreen extends StatefulWidget {
   const AddEmployeeScreen({Key? key}) : super(key: key);
 
@@ -12,6 +11,7 @@ class AddEmployeeScreen extends StatefulWidget {
 
 class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController(); // Nuevo controlador
   final TextEditingController _passwordController = TextEditingController();
 
   String? _selectedSede;
@@ -86,6 +86,14 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           controller: _nameController,
                         ),
                         SizedBox(height: inputVerticalSpacing),
+
+                        // Nuevo campo: Nombre Usuario
+                        CustomInputField(
+                          label: 'Nombre Usuario',
+                          controller: _usernameController,
+                        ),
+                        SizedBox(height: inputVerticalSpacing),
+
                         CustomDropdownField<String>(
                           label: 'Sede',
                           value: _selectedSede,
@@ -113,8 +121,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             onPressed: () {
                               // Acción de registrar
                             },
-                            backgroundColor: AppColors.tertiary,
-                            foregroundColor: AppColors.secondary,
                             padding: EdgeInsets.symmetric(
                               horizontal: screenWidth * 0.13,
                               vertical: screenHeight * 0.018,

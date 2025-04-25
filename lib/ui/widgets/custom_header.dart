@@ -35,12 +35,12 @@ class CustomHeader extends StatelessWidget {
 
     // Padding dentro del cuadro del título
     final buttonHorizontalPadding = screenWidth * 0.03;
-    final buttonVerticalPadding = screenHeight * 0.010;
+    final buttonVerticalPadding = screenHeight * 0.012;
 
     // Tamaño de fuente adaptable
-    double buttonFontSize = imageHeight * 0.13;
+    double buttonFontSize = imageHeight * 0.12;
     if (screenWidth < 350) {
-      buttonFontSize = imageHeight * 0.12;
+      buttonFontSize = imageHeight * 0.10;
     }
 
     return Container(

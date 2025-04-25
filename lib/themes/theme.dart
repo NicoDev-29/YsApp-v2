@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color.fromRGBO(217, 38, 109, 1); // Rosa fuerte
-  static const Color secondary = Colors.white; // Blanco
-  static const Color tertiary = Colors.black; // Negro
+  static const Color primary = Color.fromRGBO(217, 38, 109, 1); 
+  static const Color secondary = Colors.white; 
+  static const Color tertiary = Colors.black; 
   static const Color gradient1 = Color.fromARGB(255, 228, 135, 171);
   static const Color gradient2 = Color.fromARGB(255, 233, 89, 149);
 }

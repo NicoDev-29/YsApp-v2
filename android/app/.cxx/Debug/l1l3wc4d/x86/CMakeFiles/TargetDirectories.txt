@@ -1,0 +1,2 @@
+C:/YsApp/Ysapp/android/app/.cxx/Debug/l1l3wc4d/x86/CMakeFiles/edit_cache.dir
+C:/YsApp/Ysapp/android/app/.cxx/Debug/l1l3wc4d/x86/CMakeFiles/rebuild_cache.dir

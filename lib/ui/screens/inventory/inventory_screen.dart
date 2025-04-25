@@ -49,9 +49,8 @@ class InventoryScreen extends StatelessWidget {
                       builder: (context) => const NewCategoryDialog(),
                     );
 
-                    // Haz algo con el nombre de la nueva categoría (si se agregó)
+                  
                     if (newCategoryName != null && newCategoryName.isNotEmpty) {
-                      // Agrega la categoría a tu lista o base de datos
                       print('Nueva categoría agregada: $newCategoryName');
                     }
                   },
@@ -59,11 +58,53 @@ class InventoryScreen extends StatelessWidget {
 
                 InventoryMenuButton(
                   label: 'Agregar nuevo producto',
-                  onTap: () {},
+                  onTap: () {Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const AddProductScreen(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+                          const curve = Curves.ease;
+
+                          final tween = Tween(begin: begin, end: end)
+                              .chain(CurveTween(curve: curve));
+                          final offsetAnimation = animation.drive(tween);
+
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
+                      ),
+                    );},
                 ),
                 InventoryMenuButton(
                   label: 'Visualizar productos',
-                  onTap: () {},
+                   onTap: () {Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const ProductListScreen(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+                          const curve = Curves.ease;
+
+                          final tween = Tween(begin: begin, end: end)
+                              .chain(CurveTween(curve: curve));
+                          final offsetAnimation = animation.drive(tween);
+
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
+                      ),
+                    );},
                 ),
 
                 const Align(
@@ -73,11 +114,53 @@ class InventoryScreen extends StatelessWidget {
 
                 InventoryMenuButton(
                   label: 'Agregar nuevo servicio',
-                  onTap: () {},
+                  onTap: () {Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const AddServiceScreen(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+                          const curve = Curves.ease;
+
+                          final tween = Tween(begin: begin, end: end)
+                              .chain(CurveTween(curve: curve));
+                          final offsetAnimation = animation.drive(tween);
+
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
+                      ),
+                    );},
                 ),
                 InventoryMenuButton(
                   label: 'Visualizar servicios',
-                  onTap: () {},
+                  onTap: ()  {Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const ServiceListScreen(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+                          const curve = Curves.ease;
+
+                          final tween = Tween(begin: begin, end: end)
+                              .chain(CurveTween(curve: curve));
+                          final offsetAnimation = animation.drive(tween);
+
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
+                      ),
+                    );},
                 ),
 
                 SizedBox(height: screenHeight * 0.03),
