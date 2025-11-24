@@ -1,0 +1,253 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:ysa_app/themes/theme.dart';
+import '../../widgets/widgets_exports.dart';
+import 'package:ysa_app/providers/auth_provider.dart';
+
+class AddPersonalScreen extends StatefulWidget {
+  const AddPersonalScreen({Key? key}) : super(key: key);
+
+  @override
+  State<AddPersonalScreen> createState() => _AddPersonalScreenState();
+}
+
+class _AddPersonalScreenState extends State<AddPersonalScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  String? _selectedSalon;
+  String? _selectedRol;
+
+  final List<Map<String, String>> _salones = [
+    {'id': 'salon_principal', 'nombre': 'Salón Principal'},
+    {'id': 'salon_secundario', 'nombre': 'Salón Secundario'},
+  ];
+
+  final List<Map<String, String>> _roles = [
+    {'id': 'admin', 'nombre': 'Administradora'},
+    {'id': 'personal', 'nombre': 'Personal'},
+  ];
+
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nombreController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _registrarPersonal() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    final success = await authProvider.registerUser(
+      email: _emailController.text,
+      password: _passwordController.text,
+      nombreUsuario: _nombreController.text,
+      idSalon: _selectedSalon!,
+      idRol: _selectedRol!,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Personal registrado correctamente'),
+          backgroundColor: AppColors.activeGreen,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Error al registrar'),
+          backgroundColor: AppColors.inactiveRed,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.secondary,
+          systemOverlayStyle: SystemUiOverlayStyle.dark, 
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            'Agregar Personal',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(
+              color: Colors.grey[200],
+              height: 1,
+            ),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 40, 20, 60),
+          physics: const BouncingScrollPhysics(),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.person_add_outlined,
+                    size: 50,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                CustomFormField(
+                  label: 'Nombre completo',
+                  controller: _nombreController,
+                  icon: Icons.person_outline,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Ingresa el nombre';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                CustomFormField(
+                  label: 'Correo',
+                  controller: _emailController,
+                  icon: Icons.email_outlined,
+                  inputType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Ingresa el email';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Email inválido';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Contraseña',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: CustomPasswordFieldT(
+                        label: "",
+                        controller: _passwordController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingresa una contraseña';
+                          }
+                          if (value.length < 6) {
+                            return 'Mínimo 6 caracteres';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                CustomDropdownField2(
+                  label: 'Salón',
+                  value: _selectedSalon,
+                  icon: Icons.store_outlined,
+                  items: _salones,
+                  onChanged: (value) => setState(() => _selectedSalon = value),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Selecciona un salón';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                CustomDropdownField2(
+                  label: 'Rol',
+                  value: _selectedRol,
+                  icon: Icons.badge_outlined,
+                  items: _roles,
+                  onChanged: (value) => setState(() => _selectedRol = value),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Selecciona un rol';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 40),
+                PrimaryButton(
+                  text: 'REGISTRAR',
+                  onPressed: _registrarPersonal,
+                  isLoading: _isLoading,
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

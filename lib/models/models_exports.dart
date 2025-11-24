@@ -1,5 +1,7 @@
-export 'employee.dart';
-export 'product.dart';
-export 'service.dart';
+export 'user_model.dart';
+export 'product_model.dart';
+export 'service_model.dart';
 export 'sale.dart';
 export 'sale_item.dart';
+export 'menu_option.dart';
+export 'movement_model.dart';

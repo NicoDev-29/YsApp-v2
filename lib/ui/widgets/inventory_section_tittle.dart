@@ -12,10 +12,10 @@ class InventorySectionTitle extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
 
     final verticalMargin = screenHeight * 0.018; // ~14px
-    final horizontalPadding = screenWidth * 0.07; // ~22px
+    final horizontalPadding = screenWidth * 0.06; // ~22px
     final verticalPadding = screenHeight * 0.013; // ~8px
     final borderRadius = screenWidth * 0.025; // ~10px
-    final fontSize = screenHeight * 0.022; // ~15px
+    final fontSize = screenHeight * 0.020; // ~15px
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: verticalMargin),

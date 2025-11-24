@@ -20,7 +20,7 @@ class InventoryMenuButton extends StatelessWidget {
     final horizontalPadding = screenWidth * 0.05; 
     final verticalPadding = screenHeight * 0.015;
     final borderRadius = screenWidth * 0.07;
-    final fontSize = screenHeight * 0.022;
+    final fontSize = screenHeight * 0.020;
 
     return Material(
       color: Colors.transparent,
@@ -33,6 +33,7 @@ class InventoryMenuButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.secondary,
             borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(color: AppColors.borderGrey, width: 0.5),
             boxShadow: const [
               BoxShadow(
                 color: Colors.black12,
@@ -47,7 +48,7 @@ class InventoryMenuButton extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.plomo,
                     fontWeight: FontWeight.bold,
                     fontSize: fontSize,
                   ),

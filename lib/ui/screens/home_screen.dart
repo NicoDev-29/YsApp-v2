@@ -73,7 +73,7 @@ Widget _menuItem(
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const EmployeesScreen()),
+                    builder: (context) => const PersonalScreen()),
               );
             } else if (title == "INVENTARIO") {
               Navigator.push(

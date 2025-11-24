@@ -1,201 +1,455 @@
-import 'package:flutter/material.dart';
-import 'package:ysa_app/ui/widgets/image_selector.dart';
-import '/../../themes/theme.dart';
-import '../../widgets/widgets_exports.dart';
 import 'dart:io';
-import '/../models/models_exports.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:ysa_app/providers/providers_exports.dart';
+import 'package:ysa_app/models/product_model.dart';
+import 'package:ysa_app/themes/theme.dart';
+import 'package:ysa_app/ui/widgets/widgets_exports.dart';
+import 'package:ysa_app/services/services_export.dart';
 
 class EditProductScreen extends StatefulWidget {
-  final Product product;
+  final ProductModel product;
 
-  const EditProductScreen({Key? key, required this.product}) : super(key: key);
+  const EditProductScreen({
+    Key? key,
+    required this.product,
+  }) : super(key: key);
 
   @override
   State<EditProductScreen> createState() => _EditProductScreenState();
 }
 
 class _EditProductScreenState extends State<EditProductScreen> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nombreController;
+  late TextEditingController _precioController;
+
   String? _selectedSalon;
   String? _selectedCategoria;
-  late TextEditingController _productoController;
-  late TextEditingController _precioController;
-  late TextEditingController _stockController;
-  File? _selectedImage;
+  File? _newImage;
+  bool _isLoading = false;
 
-  final List<String> _salones = ['Salon 1', 'Salon 2', 'Salon 3'];
-  final List<String> _categorias = [
-    'Categoria 1',
-    'Categoria 2',
-    'Categoria 3'
+  late int _currentStock;
+
+  final List<Map<String, String>> _salones = [
+    {'id': 'salon_principal', 'nombre': 'Salón Principal'},
+    {'id': 'salon_secundario', 'nombre': 'Salón Secundario'},
+  ];
+
+  final List<Map<String, String>> _categorias = [
+    {'id': 'tintes', 'nombre': 'Tintes'},
+    {'id': 'champus', 'nombre': 'Champús y Acondicionadores'},
+    {'id': 'tratamientos', 'nombre': 'Tratamientos'},
+    {'id': 'cremas', 'nombre': 'Cremas'},
+    {'id': 'unas', 'nombre': 'Productos de Uñas'},
+    {'id': 'spray', 'nombre': 'Sprays y Lacas'},
+    {'id': 'accesorios', 'nombre': 'Accesorios'},
+    {'id': 'otros', 'nombre': 'Otros'},
   ];
 
   @override
   void initState() {
     super.initState();
-
-    // Inicializa los controladores con valores del producto o cadena vacía si nulos
-    _productoController = TextEditingController(text: widget.product.name ?? '');
-    _precioController = TextEditingController(text: widget.product.price?.toString() ?? '');
-    _stockController = TextEditingController(text: widget.product.stock?.toString() ?? '');
-
-    // Inicializa dropdowns con null o valores si tienes en modelo
-    _selectedSalon = null;
-    _selectedCategoria = null;
+    _nombreController = TextEditingController(text: widget.product.nombre);
+    _precioController =
+        TextEditingController(text: widget.product.precio.toString());
+    _currentStock = widget.product.stock;
+    _selectedSalon = widget.product.idSalon;
+    _selectedCategoria = widget.product.categoria;
   }
 
   @override
   void dispose() {
-    _productoController.dispose();
+    _nombreController.dispose();
     _precioController.dispose();
-    _stockController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleImageSelection() async {
+    await ImageSourceHelper.showImageSourceOptions(
+      context: context,
+      onSourceSelected: (source) async {
+        final image = await ImageSourceHelper.pickImage(source: source);
+        if (image != null) {
+          setState(() => _newImage = image);
+        }
+      },
+    );
+  }
+
+  Future<void> _showStockAdjustment({required bool isAdding}) async {
+    final quantity = await showDialog<int>(
+      context: context,
+      builder: (context) => QuantityAdjustmentDialog(
+        title: isAdding ? 'Agregar productos' : 'Restar productos',
+        currentStock: _currentStock,
+        isAdding: isAdding,
+      ),
+    );
+
+    if (quantity != null) {
+      setState(() {
+        if (isAdding) {
+          _currentStock += quantity;
+        } else {
+          _currentStock -= quantity;
+        }
+      });
+    }
+  }
+
+  Future<void> _actualizarProducto() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Guardar stock original para comparar
+    final stockOriginal = widget.product.stock;
+    final stockCambio = _currentStock != stockOriginal;
+
+    bool success;
+
+    if (_newImage != null) {
+      success = await inventoryProvider.updateProductWithImage(
+        widget.product.id,
+        {
+          'nombre': _nombreController.text.trim(),
+          'precio': double.parse(_precioController.text),
+          'stock': _currentStock,
+          'categoria': _selectedCategoria,
+          'idSalon': _selectedSalon,
+        },
+        _newImage,
+        widget.product.imagen,
+      );
+    } else {
+      success = await inventoryProvider.updateProduct(
+        widget.product.id,
+        {
+          'nombre': _nombreController.text.trim(),
+          'precio': double.parse(_precioController.text),
+          'stock': _currentStock,
+          'categoria': _selectedCategoria,
+          'idSalon': _selectedSalon,
+        },
+      );
+    }
+
+    // Si cambió el stock, registrar movimiento de AJUSTE
+    if (success && stockCambio) {
+      await inventoryProvider.adjustStock(
+        productId: widget.product.id,
+        productName: widget.product.nombre,
+        cantidadAnterior: stockOriginal,
+        cantidadNueva: _currentStock,
+        salonId: widget.product.idSalon,
+        userId: authProvider.currentUser!.id,
+        userName: authProvider.currentUser!.nombreUsuario,
+      );
+    }
+
+    setState(() => _isLoading = false);
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Producto actualizado correctamente'),
+          backgroundColor: AppColors.activeGreen,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(inventoryProvider.errorMessage ?? 'Error al actualizar'),
+          backgroundColor: AppColors.inactiveRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    final horizontalPadding = (screenWidth * 0.07).clamp(20.0, 40.0);
-    final inputVerticalSpacing = screenHeight * 0.025;
-
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.secondary,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.secondary),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: const Text(
-          'Atrás',
+          'Editar Producto',
           style: TextStyle(
-            color: AppColors.secondary,
-            fontWeight: FontWeight.bold,
+            color: Colors.black87,
             fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: false,
-        automaticallyImplyLeading: true,
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: Colors.grey[200],
+            height: 1,
+          ),
+        ),
       ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.gradient1,
-              AppColors.gradient2,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(20, 40, 20, 10),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const CustomHeader(
-                      title: 'EDITAR PRODUCTO',
-                      imagePath: 'assets/item4.png',
-                    ),
-                    SizedBox(height: screenHeight * 0.03),
-
-                    // Dropdown Salón
-                    CustomDropdownField<String>(
-                      label: 'Salon',
-                      value: _selectedSalon,
-                      items: _salones
-                          .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedSalon = value;
-                        });
-                      },
-                    ),
-                    SizedBox(height: inputVerticalSpacing),
-
-                    // Input Producto
-                    CustomInputField(
-                      label: 'Producto',
-                      controller: _productoController,
-                    ),
-                    SizedBox(height: inputVerticalSpacing),
-
-                    // Dropdown Categoría
-                    CustomDropdownField<String>(
-                      label: 'Categoria',
-                      value: _selectedCategoria,
-                      items: _categorias
-                          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedCategoria = value;
-                        });
-                      },
-                    ),
-                    SizedBox(height: inputVerticalSpacing),
-
-                    // Precio y Stock en una fila
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CustomInputField(
-                            label: 'Precio',
-                            controller: _precioController,
-                            inputType: TextInputType.number,
+                    GestureDetector(
+                      onTap: _handleImageSelection,
+                      child: Container(
+                        height: 200,
+                        width: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.grey[300]!,
+                            width: 2,
                           ),
                         ),
-                        SizedBox(width: screenWidth * 0.06),
-                        Expanded(
-                          child: CustomInputField(
-                            label: 'Stock',
-                            controller: _stockController,
-                            inputType: TextInputType.number,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: _buildImagePreview(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton.icon(
+                      onPressed: _handleImageSelection,
+                      icon: const Icon(Icons.camera_alt, size: 20),
+                      label: const Text('Cambiar imagen'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomTextField(
+                      label: 'Nombre del producto',
+                      controller: _nombreController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Ingresa el nombre del producto';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    CustomDropdown(
+                      label: 'Salón',
+                      value: _selectedSalon,
+                      items: _salones,
+                      onChanged: (value) =>
+                          setState(() => _selectedSalon = value),
+                      hintText: 'Selecciona un salón',
+                    ),
+                    const SizedBox(height: 16),
+                    CustomDropdown(
+                      label: 'Categoría',
+                      value: _selectedCategoria,
+                      items: _categorias,
+                      onChanged: (value) =>
+                          setState(() => _selectedCategoria = value),
+                      hintText: 'Selecciona categoría',
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      label: 'Precio (S/.)',
+                      controller: _precioController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Ingresa el precio';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Precio inválido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Stock',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: AppColors.inputFill,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppColors.borderGrey,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  _currentStock.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () =>
+                                    _showStockAdjustment(isAdding: false),
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.orange, width: 1.5),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.remove,
+                                    color: Colors.orange,
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () =>
+                                    _showStockAdjustment(isAdding: true),
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: AppColors.activeGreen,
+                                        width: 1.5),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: AppColors.activeGreen,
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    SizedBox(height: inputVerticalSpacing),
-
-                    // Selector de Imagen
-                    ImageSelector(
-                      label: 'Imagen',
-                      onImageSelected: (image) {
-                        setState(() {
-                          _selectedImage = image;
-                        });
-                      },
-                    ),
-                    SizedBox(height: screenHeight * 0.04),
-
-                    // Botón Guardar cambios
-                    Center(
-                      child: CustomButton(
-                        label: 'GUARDAR CAMBIOS',
-                        onPressed: () {
-                          // Por ahora solo cierra la pantalla
-                          Navigator.pop(context);
-                        },
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: screenWidth * 0.13,
-                          vertical: screenHeight * 0.018,
-                        ),
-                        borderRadius: 25,
-                        elevation: 8,
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.04),
                   ],
                 ),
-              );
-            },
+              ),
+              const SizedBox(height: 24),
+              PrimaryButton(
+                text: 'GUARDAR CAMBIOS',
+                onPressed: _actualizarProducto,
+                isLoading: _isLoading,
+              ),
+              const SizedBox(height: 80),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildImagePreview() {
+    if (_newImage != null) {
+      return Image.file(_newImage!, fit: BoxFit.cover);
+    }
+
+    if (widget.product.imagen != null && widget.product.imagen!.isNotEmpty) {
+      if (widget.product.imagen!.startsWith('http')) {
+        return Image.network(
+          widget.product.imagen!,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                color: AppColors.primary,
+              ),
+            );
+          },
+        );
+      } else {
+        return Image.file(
+          File(widget.product.imagen!),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+        );
+      }
+    }
+
+    return _buildPlaceholder();
+  }
+
+  Widget _buildPlaceholder() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.add_photo_alternate_outlined,
+              size: 48, color: Colors.grey[400]),
+          const SizedBox(height: 8),
+          Text('Toca para agregar imagen',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        ],
       ),
     );
   }

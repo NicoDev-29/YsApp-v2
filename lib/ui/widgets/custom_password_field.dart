@@ -3,52 +3,67 @@ import '../../themes/theme.dart';
 
 class CustomPasswordField extends StatefulWidget {
   final String label;
-  final TextEditingController? controller;
+  final TextEditingController controller;
+  final String? Function(String?)? validator;
 
   const CustomPasswordField({
-    super.key,
+    Key? key,
     required this.label,
-    this.controller,
-  });
+    required this.controller,
+    this.validator,
+  }) : super(key: key);
 
   @override
   State<CustomPasswordField> createState() => _CustomPasswordFieldState();
 }
 
 class _CustomPasswordFieldState extends State<CustomPasswordField> {
-  bool _obscurePassword = true;
+  bool _obscureText = true;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.label,
-          style: const TextStyle(
-            color: AppColors.tertiary,
-            fontWeight: FontWeight.bold,
+    return TextFormField(
+      controller: widget.controller,
+      obscureText: _obscureText,
+      validator: widget.validator,
+      decoration: InputDecoration(
+        labelText: widget.label.isNotEmpty ? widget.label : null,
+        hintText: '••••••••',
+        prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscureText ? Icons.visibility_off : Icons.visibility,
+            color: AppColors.primary,
           ),
+          onPressed: () {
+            setState(() {
+              _obscureText = !_obscureText;
+            });
+          },
         ),
-        const SizedBox(height: 5),
-        TextField(
-          controller: widget.controller,
-          obscureText: _obscurePassword,
-          decoration: InputDecoration(
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: Colors.grey,
-              ),
-              onPressed: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
-            ),
-          ),
+        filled: true,
+        fillColor: AppColors.inputFill,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25),
+          borderSide: const BorderSide(color: AppColors.borderGrey, width: 1),
         ),
-      ],
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25),
+          borderSide: const BorderSide(color: AppColors.borderGrey, width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25),
+          borderSide: const BorderSide(color: AppColors.inactiveRed, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25),
+          borderSide: const BorderSide(color: AppColors.inactiveRed, width: 2),
+        ),
+      ),
     );
   }
 }

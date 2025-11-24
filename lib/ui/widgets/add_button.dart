@@ -34,18 +34,18 @@ class AddButton extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: onPressed,
         icon: icon != null
-            ? Icon(icon, color: AppColors.primary, size: fontSize + 4)
+            ? Icon(icon, color: AppColors.secondary, size: fontSize + 4)
             : const SizedBox.shrink(),
         label: Text(
           label,
           style: TextStyle(
             fontSize: fontSize,
-            color: AppColors.primary,
+            color: AppColors.secondary,
             fontWeight: FontWeight.w600,
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.secondary,
+          backgroundColor: AppColors.primary,
           padding: EdgeInsets.symmetric(
             horizontal: horizontalPadding,
             vertical: verticalPadding,

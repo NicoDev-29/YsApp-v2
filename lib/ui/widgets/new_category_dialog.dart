@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/../themes/theme.dart';
+import 'package:ysa_app/services/services_export.dart';
 
 class NewCategoryDialog extends StatefulWidget {
   const NewCategoryDialog({Key? key}) : super(key: key);
@@ -50,7 +51,8 @@ class _NewCategoryDialogState extends State<NewCategoryDialog> {
                 decoration: InputDecoration(
                   hintText: 'Nombre de la categoría',
                   hintStyle: TextStyle(fontSize: fontSize),
-                  contentPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(borderRadius / 2),
                     borderSide: BorderSide.none,
@@ -61,25 +63,26 @@ class _NewCategoryDialogState extends State<NewCategoryDialog> {
                 style: TextStyle(fontSize: fontSize),
               ),
             ),
-            SizedBox(height: screenHeight * 0.01), 
+            SizedBox(height: screenHeight * 0.01),
             Align(
               alignment: Alignment.bottomRight,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(_categoryNameController.text);
+                onPressed: () async {
+                  final categoryName = _categoryNameController.text.trim();
+                  if (categoryName.isEmpty) {
+                    // Mostrar mensaje de error si quieres
+                    return;
+                  }
+                  try {
+                    await CategoryService().addCategory(categoryName);
+                    Navigator.of(context).pop(true); // Retorna éxito
+                  } catch (e) {
+                    // Manejar error, mostrar mensaje
+                    print('Error al agregar categoría: $e');
+                  }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.05, 
-                    vertical: screenHeight * 0.01, 
-                  ),
-                  textStyle: TextStyle(fontSize: fontSize * 0.9),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(borderRadius / 2),
-                  ),
-                ),
+
+                // resto igual
                 child: const Text('Agregar'),
               ),
             ),
