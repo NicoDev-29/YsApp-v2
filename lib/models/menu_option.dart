@@ -19,7 +19,7 @@ class MenuOption {
 final List<MenuOption> menuOptions = [
   MenuOption(
     index: 0, 
-    label: 'Ventas', 
+    label: 'Vender', 
     icon: Icons.point_of_sale, 
     routeName: '/sales',
     

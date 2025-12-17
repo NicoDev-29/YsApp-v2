@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import 'sales_provider.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -29,8 +31,13 @@ class AuthProvider extends ChangeNotifier {
   void _initAuthListener() {
     _authService.authStateChanges.listen((user) async {
       if (user != null) {
+        // IMPORTANTE: Esperar a que _loadUserData termine completamente
         await _loadUserData(user.uid);
-        _startUserStatusListener(user.uid);
+        
+        // Solo iniciar el listener si el usuario fue cargado exitosamente
+        if (_currentUser != null) {
+          _startUserStatusListener(user.uid);
+        }
       } else {
         _cancelUserStatusListener();
         _currentUser = null;
@@ -48,7 +55,7 @@ class AuthProvider extends ChangeNotifier {
 
   void _startUserStatusListener(String uid) {
     _cancelUserStatusListener();
-    
+
     _userStatusListener = FirebaseFirestore.instance
         .collection('usuarios')
         .doc(uid)
@@ -56,8 +63,9 @@ class AuthProvider extends ChangeNotifier {
         .listen((snapshot) {
       if (snapshot.exists) {
         final isActive = snapshot.data()?['activo'] ?? true;
-        
-        if (!isActive && _currentUser != null) {
+
+        // Solo cerrar sesión si el usuario estaba activo y ahora está inactivo
+        if (!isActive && _currentUser != null && _currentUser!.activo) {
           _errorMessage = 'Tu cuenta ha sido desactivada por un administrador';
           signOut();
         }
@@ -80,7 +88,6 @@ class AuthProvider extends ChangeNotifier {
         _errorMessage = 'Email y contraseña son requeridos';
         _isLoading = false;
         notifyListeners();
-        await Future.delayed(const Duration(milliseconds: 100));
         return false;
       }
 
@@ -90,17 +97,17 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (userCredential.user != null) {
-        await Future.delayed(const Duration(milliseconds: 300));
+        // Esperar un poco más para asegurar que _loadUserData termine
+        await Future.delayed(const Duration(milliseconds: 800));
         
-        if (_currentUser?.activo == false) {
-          await signOut();
-          _errorMessage = 'Tu cuenta está desactivada. Contacta al administrador';
+        // Verificar si el usuario fue cargado exitosamente
+        if (_currentUser == null) {
           _isLoading = false;
+          // El error ya fue establecido en _loadUserData
           notifyListeners();
-          await Future.delayed(const Duration(milliseconds: 100));
           return false;
         }
-        
+
         _isLoading = false;
         notifyListeners();
         return true;
@@ -113,13 +120,11 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = _getAuthErrorMessage(e.code);
       _isLoading = false;
       notifyListeners();
-      await Future.delayed(const Duration(milliseconds: 100));
       return false;
     } catch (e) {
       _errorMessage = 'Error inesperado al iniciar sesión';
       _isLoading = false;
       notifyListeners();
-      await Future.delayed(const Duration(milliseconds: 100));
       return false;
     }
   }
@@ -127,10 +132,10 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _loadUserData(String uid) async {
     try {
       final userData = await _authService.getUserData(uid);
-      
+
       if (userData != null) {
         final isActive = userData['activo'] ?? true;
-        
+
         if (!isActive) {
           _errorMessage = 'Tu cuenta ha sido desactivada. Contacta al administrador';
           await _authService.signOut();
@@ -139,7 +144,7 @@ class AuthProvider extends ChangeNotifier {
           notifyListeners();
           return;
         }
-        
+
         _currentUser = UserModel(
           id: uid,
           nombreUsuario: userData['nombreUsuario'] ?? '',
@@ -218,7 +223,7 @@ class AuthProvider extends ChangeNotifier {
           'createdAt': FieldValue.serverTimestamp(),
         },
       );
-      
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -235,12 +240,41 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> signOut() async {
+  // ========================================
+  // 🔥 MÉTODO MODIFICADO CON DEBUGGING
+  // ========================================
+  Future<void> signOut([BuildContext? context]) async {
+    print('🔥 [AuthProvider] signOut() llamado');
+    print('🔥 [AuthProvider] Context recibido: ${context != null ? "SÍ" : "NO"}');
+    
     _cancelUserStatusListener();
+    
+    // 🔥 LIMPIAR CARRITO SI SE PASA CONTEXT
+    if (context != null) {
+      print('🔥 [AuthProvider] Intentando limpiar carrito...');
+      try {
+        final salesProvider = Provider.of<SalesProvider>(context, listen: false);
+        print('🔥 [AuthProvider] SalesProvider encontrado');
+        print('🔥 [AuthProvider] Items en carrito ANTES: ${salesProvider.cartItemCount}');
+        
+        salesProvider.clearCart();
+        
+        print('🔥 [AuthProvider] Items en carrito DESPUÉS: ${salesProvider.cartItemCount}');
+        print('🔥 [AuthProvider] ✅ Carrito limpiado exitosamente');
+      } catch (e) {
+        print('🔥 [AuthProvider] ❌ ERROR al limpiar carrito: $e');
+        print('🔥 [AuthProvider] Stack trace: ${StackTrace.current}');
+      }
+    } else {
+      print('🔥 [AuthProvider] ⚠️ NO se limpiará el carrito (context = null)');
+    }
+    
+    print('🔥 [AuthProvider] Cerrando sesión de Firebase...');
     await _authService.signOut();
     _currentUser = null;
     _errorMessage = null;
     notifyListeners();
+    print('🔥 [AuthProvider] ✅ Sesión cerrada completamente');
   }
 
   void clearError() {

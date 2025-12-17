@@ -5,13 +5,19 @@ class CustomSearchBar extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final ValueChanged<String>? onChanged;
+  final VoidCallback? onClear;
+  final FocusNode? focusNode;
+  final bool isSearching;
 
   const CustomSearchBar({
-    super.key,
+    Key? key,
     required this.controller,
     this.hintText = 'Buscar',
     this.onChanged,
-  });
+    this.onClear,
+    this.focusNode,
+    this.isSearching = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +35,7 @@ class CustomSearchBar extends StatelessWidget {
       ),
       child: TextField(
         controller: controller,
+        focusNode: focusNode,
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
@@ -40,6 +47,20 @@ class CustomSearchBar extends StatelessWidget {
             color: Colors.grey[400],
             size: 24,
           ),
+          suffixIcon: (isSearching || controller.text.isNotEmpty)
+              ? IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  onPressed: () {
+                    controller.clear();
+                    if (onChanged != null) {
+                      onChanged!('');
+                    }
+                    if (onClear != null) {
+                      onClear!();
+                    }
+                  },
+                )
+              : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,

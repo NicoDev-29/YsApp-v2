@@ -18,7 +18,7 @@ class SuccessDialog extends StatelessWidget {
       builder: (dialogContext) => SuccessDialog(message: message),
     );
 
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    Future.delayed(const Duration(milliseconds: 1100), () {
       if (navigator.canPop()) {
         navigator.pop();
       }

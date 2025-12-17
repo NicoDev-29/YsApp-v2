@@ -5,10 +5,10 @@ import 'package:provider/provider.dart';
 import 'package:ysa_app/services/navigation_service.dart';
 import 'package:ysa_app/themes/theme.dart';
 import '../../widgets/widgets_exports.dart';
-import 'package:ysa_app/providers/roles.dart';
 import '../screens_exports.dart';
-import 'package:ysa_app/models/user_model.dart';
-import 'package:ysa_app/providers/auth_provider.dart';
+import 'package:ysa_app/models/models_exports.dart';
+import 'package:ysa_app/providers/providers_exports.dart';
+
 
 class PersonalScreen extends StatefulWidget {
   const PersonalScreen({super.key});
@@ -26,12 +26,44 @@ class _PersonalScreenState extends State<PersonalScreen> {
   String _rolFilter = 'todos';
 
   @override
+  void initState() {
+    super.initState();
+    // Verificar permisos al cargar la pantalla
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAccess();
+    });
+  }
+
+  void _checkAccess() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    if (!authProvider.isAdmin) {
+      // Redirigir a Ventas si no es admin
+      Navigator.of(context).pushReplacementNamed('/sales');
+    }
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
   Future<void> toggleActive(UserModel user) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // PROTECCIÓN: No permitir que un usuario se desactive a sí mismo
+    if (user.id == authProvider.currentUser?.id) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No puedes desactivar tu propia cuenta'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -170,17 +202,11 @@ class _PersonalScreenState extends State<PersonalScreen> {
       
       if (!mounted) return;
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            user.activo 
-                ? '${user.nombreUsuario} ha sido desactivado' 
-                : '${user.nombreUsuario} ha sido activado',
-          ),
-          backgroundColor: user.activo ? Colors.orange : Colors.green,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
-        ),
+      SuccessDialog.show(
+        context,
+        user.activo 
+            ? '${user.nombreUsuario} ha sido desactivado' 
+            : '${user.nombreUsuario} ha sido activado',
       );
     }
   }

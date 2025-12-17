@@ -52,6 +52,8 @@ class _EditPersonalScreenState extends State<EditPersonalScreen> {
       return;
     }
 
+     FocusScope.of(context).unfocus();
+
     setState(() => _isLoading = true);
 
     try {
@@ -66,21 +68,16 @@ class _EditPersonalScreenState extends State<EditPersonalScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Personal actualizado correctamente'),
-          backgroundColor: AppColors.activeGreen,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-
-      Navigator.pop(context);
+      SuccessDialog.show(context, 'Personal actualizado correctamente');
+      
+      // Cerrar la pantalla después del dialog
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted) Navigator.pop(context);
+      });
     } catch (e) {
       if (!mounted) return;
 
+      // Mantener SnackBar para errores
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al actualizar: $e'),
