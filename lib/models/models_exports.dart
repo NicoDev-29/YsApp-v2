@@ -5,3 +5,5 @@ export 'sale.dart';
 export 'sale_item.dart';
 export 'menu_option.dart';
 export 'movement_model.dart';
+export 'cart_item_model.dart';
+export 'sale_model.dart';

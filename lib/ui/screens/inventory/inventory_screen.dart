@@ -5,9 +5,10 @@ import 'package:ysa_app/providers/providers_exports.dart';
 import 'package:ysa_app/themes/theme.dart';
 import 'package:ysa_app/models/models_exports.dart';
 import 'package:ysa_app/ui/widgets/widgets_exports.dart';
-import 'package:ysa_app/services/services_export.dart';
+import 'package:ysa_app/services/services_exports.dart';
 
 import '../screens_exports.dart';
+
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({Key? key}) : super(key: key);
@@ -196,67 +197,6 @@ class _InventoryScreenState extends State<InventoryScreen>
     }
   }
 
-  // Widget reutilizable para el selector de salón
-  Widget _buildSalonSelector() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[300]!),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.store_outlined,
-                color: AppColors.primary, size: 20),
-            const SizedBox(width: 12),
-            const Text(
-              'Salón:',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedSalonFilter,
-                  isExpanded: true,
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'salon_principal',
-                      child: Text('Salón Principal'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'salon_secundario',
-                      child: Text('Salón Secundario'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedSalonFilter = value;
-                    });
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // Widget de filtros para movimientos
   Widget _buildMovementFilters() {
     final filters = [
@@ -348,50 +288,23 @@ class _InventoryScreenState extends State<InventoryScreen>
               ),
 
               // Selector de Salón (aparece en todas las tabs para admin)
-              if (isAdmin) _buildSalonSelector(),
-
-              // Tabs
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicator: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.grey[700],
-                    labelStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    dividerColor: Colors.transparent,
-                    dividerHeight: 0,
-                    onTap: (index) {
-                      setState(() {});
-                    },
-                    tabs: const [
-                      Tab(
-                        height: 36,
-                        text: 'Products',
-                      ),
-                      Tab(
-                        height: 36,
-                        text: 'Services',
-                      ),
-                      Tab(
-                        height: 36,
-                        text: 'Movi',
-                      ),
-                    ],
-                  ),
+              if (isAdmin)
+                SalonSelector(
+                  selectedSalon: _selectedSalonFilter,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedSalonFilter = value;
+                    });
+                  },
                 ),
+
+              // Tabs con widget reutilizable
+              CustomTabBar(
+                controller: _tabController,
+                tabs: const ['Products', 'Services', 'Movi'],
+                onTap: (index) {
+                  setState(() {});
+                },
               ),
 
               const SizedBox(height: 10),

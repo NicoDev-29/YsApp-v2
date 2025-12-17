@@ -50,7 +50,7 @@ class InventoryProvider extends ChangeNotifier {
     }
   }
 
-  // Actualizar producto
+  // Actualizar producto simple (para cambios básicos como activar/desactivar)
   Future<bool> updateProduct(String id, Map<String, dynamic> data) async {
     try {
       _isLoading = true;
@@ -100,7 +100,61 @@ class InventoryProvider extends ChangeNotifier {
     }
   }
 
-  // Ajustar stock (Entrada/Salida Manual)
+  // Editar producto completo (con lógica de ajuste de stock automático)
+  Future<bool> editProduct({
+    required String productId,
+    required ProductModel oldProduct,
+    required Map<String, dynamic> newData,
+    File? newImage,
+    String? oldImageUrl,
+    required String userId,
+    required String userName,
+  }) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      // Actualizar producto (con o sin imagen)
+      if (newImage != null) {
+        await _inventoryService.updateProductWithImage(
+          productId,
+          newData,
+          newImage,
+          oldImageUrl,
+        );
+      } else {
+        await _inventoryService.updateProduct(productId, newData);
+      }
+
+      // Lógica de negocio: verificar si cambió el stock
+      final stockAnterior = oldProduct.stock;
+      final stockNuevo = newData['stock'] as int;
+
+      if (stockAnterior != stockNuevo) {
+        await _inventoryService.adjustStock(
+          productId: productId,
+          productName: oldProduct.nombre,
+          cantidadAnterior: stockAnterior,
+          cantidadNueva: stockNuevo,
+          salonId: oldProduct.idSalon,
+          userId: userId,
+          userName: userName,
+        );
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Error al actualizar producto: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Ajustar stock manual (cuando se usan botones de más/menos)
   Future<bool> adjustStock({
     required String productId,
     required String productName,
@@ -203,7 +257,7 @@ class InventoryProvider extends ChangeNotifier {
     }
   }
 
-  // Registrar venta (para cuando implementes ventas)
+  // Registrar venta
   Future<bool> registerSale({
     required String ventaId,
     required List<Map<String, dynamic>> productos,

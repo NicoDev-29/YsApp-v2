@@ -6,7 +6,7 @@ import 'package:ysa_app/providers/providers_exports.dart';
 import 'package:ysa_app/models/product_model.dart';
 import 'package:ysa_app/themes/theme.dart';
 import 'package:ysa_app/ui/widgets/widgets_exports.dart';
-import 'package:ysa_app/services/services_export.dart';
+
 
 class EditProductScreen extends StatefulWidget {
   final ProductModel product;
@@ -104,73 +104,41 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
     setState(() => _isLoading = true);
 
-    final inventoryProvider =
-        Provider.of<InventoryProvider>(context, listen: false);
+    final inventoryProvider = Provider.of<InventoryProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // Guardar stock original para comparar
-    final stockOriginal = widget.product.stock;
-    final stockCambio = _currentStock != stockOriginal;
-
-    bool success;
-
-    if (_newImage != null) {
-      success = await inventoryProvider.updateProductWithImage(
-        widget.product.id,
-        {
-          'nombre': _nombreController.text.trim(),
-          'precio': double.parse(_precioController.text),
-          'stock': _currentStock,
-          'categoria': _selectedCategoria,
-          'idSalon': _selectedSalon,
-        },
-        _newImage,
-        widget.product.imagen,
-      );
-    } else {
-      success = await inventoryProvider.updateProduct(
-        widget.product.id,
-        {
-          'nombre': _nombreController.text.trim(),
-          'precio': double.parse(_precioController.text),
-          'stock': _currentStock,
-          'categoria': _selectedCategoria,
-          'idSalon': _selectedSalon,
-        },
-      );
-    }
-
-    // Si cambió el stock, registrar movimiento de AJUSTE
-    if (success && stockCambio) {
-      await inventoryProvider.adjustStock(
-        productId: widget.product.id,
-        productName: widget.product.nombre,
-        cantidadAnterior: stockOriginal,
-        cantidadNueva: _currentStock,
-        salonId: widget.product.idSalon,
-        userId: authProvider.currentUser!.id,
-        userName: authProvider.currentUser!.nombreUsuario,
-      );
-    }
+    final success = await inventoryProvider.editProduct(
+      productId: widget.product.id,
+      oldProduct: widget.product,
+      newData: {
+        'nombre': _nombreController.text.trim(),
+        'precio': double.parse(_precioController.text),
+        'stock': _currentStock,
+        'categoria': _selectedCategoria,
+        'idSalon': _selectedSalon,
+      },
+      newImage: _newImage,
+      oldImageUrl: widget.product.imagen,
+      userId: authProvider.currentUser!.id,
+      userName: authProvider.currentUser!.nombreUsuario,
+    );
 
     setState(() => _isLoading = false);
 
     if (!mounted) return;
 
     if (success) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Producto actualizado correctamente'),
-          backgroundColor: AppColors.activeGreen,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SuccessDialog.show(context, 'Producto actualizado correctamente');
+      
+      Future.delayed(const Duration(milliseconds: 1100), () {
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(inventoryProvider.errorMessage ?? 'Error al actualizar'),
+          content: Text(inventoryProvider.errorMessage ?? 'Error al actualizar'),
           backgroundColor: AppColors.inactiveRed,
           behavior: SnackBarBehavior.floating,
         ),

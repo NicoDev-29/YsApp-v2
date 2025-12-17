@@ -234,8 +234,8 @@ class CustomSideMenu extends StatelessWidget {
   // Obtener subtítulo según la opción del menú
   String _getSubtitle(String label) {
     switch (label) {
-      case 'Ventas':
-        return 'Procesar transacciones';
+      case 'Vender':
+        return 'Registrar ventas';
       case 'Transacciones':
         return 'Ver historial de ventas';
       case 'Inventario':

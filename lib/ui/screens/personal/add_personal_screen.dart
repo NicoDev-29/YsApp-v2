@@ -63,19 +63,14 @@ class _AddPersonalScreenState extends State<AddPersonalScreen> {
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Personal registrado correctamente'),
-          backgroundColor: AppColors.activeGreen,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-
-      Navigator.pop(context);
+      SuccessDialog.show(context, 'Personal registrado correctamente');
+      
+      // Cerrar la pantalla después del dialog
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted) Navigator.pop(context);
+      });
     } else {
+      // Mantener SnackBar para errores
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage ?? 'Error al registrar'),
