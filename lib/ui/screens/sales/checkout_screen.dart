@@ -199,7 +199,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 value: 'yape',
               ),
 
-              // ← ELIMINADO: Opción de Tarjeta
+              
 
               const SizedBox(height: 32),
 

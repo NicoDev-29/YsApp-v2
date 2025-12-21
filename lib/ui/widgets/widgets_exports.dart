@@ -43,6 +43,10 @@ export 'listas/product_grid_item.dart';
 export 'salon_selector.dart';
 export 'custom_tab_bar.dart';
 export 'cards/add_products_to_service_modal.dart';
+export 'transactions/date_selector.dart';
+export 'transactions/period_filter_tabs.dart';
+export 'transactions/summary_card.dart';
+export 'transactions/transaccion_card.dart';
 
 
 
