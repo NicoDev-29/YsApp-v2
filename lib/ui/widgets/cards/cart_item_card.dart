@@ -87,7 +87,7 @@ class _CartItemCardState extends State<CartItemCard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[300]!, width: 1.5),
+        border: Border.all(color: Colors.grey[300]!, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

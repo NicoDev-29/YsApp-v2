@@ -18,7 +18,7 @@ class PeriodFilterTabs extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.inputFill,
+        color: AppColors.background2,
         borderRadius: BorderRadius.circular(25),
       ),
       child: Row(

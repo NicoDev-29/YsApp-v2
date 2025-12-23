@@ -27,7 +27,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -44,6 +43,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
         centerTitle: false,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: Colors.grey[200],
+            height: 1,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -93,7 +99,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: AppColors.inputFill,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -145,8 +151,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                           child: Text(
                                             '• ${p.nombre} x${p.cantidad}',
                                             style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey[500],
+                                              fontSize: 12,
+                                              color: AppColors.plomo,
                                             ),
                                           ),
                                         )),

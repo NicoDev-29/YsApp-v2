@@ -17,7 +17,7 @@ class TransactionsScreen extends StatefulWidget {
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
   PeriodFilter _selectedPeriod = PeriodFilter.hoy;
-  DateTime? _selectedDate; // ← Ahora es nullable
+  DateTime? _selectedDate;
   String? _selectedSalonFilter;
   int currentIndex = 1;
 
@@ -35,16 +35,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     });
   }
 
-  //  Calcular fechas según el período
   DateTime get _startDate {
     final now = DateTime.now();
-    
-    // Si hay fecha personalizada, usarla
+
     if (_selectedDate != null) {
-      return DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day, 0, 0, 0);
+      return DateTime(_selectedDate!.year, _selectedDate!.month,
+          _selectedDate!.day, 0, 0, 0);
     }
-    
-    // Caso contrario, usar período predefinido
+
     switch (_selectedPeriod) {
       case PeriodFilter.hoy:
         return DateTime(now.year, now.month, now.day, 0, 0, 0);
@@ -57,24 +55,27 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   DateTime get _endDate {
     final now = DateTime.now();
-    
-    // Si hay fecha personalizada, usarla
+
     if (_selectedDate != null) {
-      return DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day, 23, 59, 59);
+      return DateTime(_selectedDate!.year, _selectedDate!.month,
+          _selectedDate!.day, 23, 59, 59);
     }
-    
-    // Caso contrario, usar período predefinido
+
     switch (_selectedPeriod) {
       case PeriodFilter.hoy:
         return DateTime(now.year, now.month, now.day, 23, 59, 59);
       case PeriodFilter.semana:
         return DateTime(now.year, now.month, now.day, 23, 59, 59);
       case PeriodFilter.mes:
-        // Último día del mes actual
         final nextMonth = DateTime(now.year, now.month + 1, 1);
-        return nextMonth.subtract(const Duration(days: 1, hours: 0, minutes: 0, seconds: 1))
+        return nextMonth
+            .subtract(const Duration(days: 1, hours: 0, minutes: 0, seconds: 1))
             .add(const Duration(hours: 23, minutes: 59, seconds: 59));
     }
+  }
+
+  void _navigateToSales() {
+    Navigator.pushNamed(context, '/sales');
   }
 
   @override
@@ -99,9 +100,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              const CustomAppBar(title: 'TRANSACCIONES'),
-
-              // Selector de salón (solo admin)
+              CustomAppBar(
+                title: 'TRANSACCIONES',
+                showAddButton: true,
+                onAddPressed: _navigateToSales,),
               if (isAdmin)
                 SalonSelector(
                   selectedSalon: _selectedSalonFilter,
@@ -111,33 +113,29 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     });
                   },
                 ),
-
-              // TABS: Al seleccionar, resetea la fecha personalizada
               PeriodFilterTabs(
                 selectedPeriod: _selectedPeriod,
                 onChanged: (period) {
                   setState(() {
                     _selectedPeriod = period;
-                    _selectedDate = null; // ← Resetear fecha personalizada
+                    _selectedDate = null;
                   });
                 },
               ),
-
-              // ✅ CALENDARIO: Al seleccionar fecha, cambia a modo personalizado
               DateSelector(
                 selectedDate: _selectedDate ?? DateTime.now(),
                 onDateChanged: (date) {
                   setState(() {
-                    _selectedDate = date; // ← Guardar fecha personalizada
+                    _selectedDate = date;
                   });
                 },
               ),
-
-              // Lista de transacciones
               Expanded(
                 child: StreamBuilder<List<SaleModel>>(
                   stream: salesProvider.getSales(
-                    salonId: isAdmin ? _selectedSalonFilter : authProvider.currentUser?.idSalon,
+                    salonId: isAdmin
+                        ? _selectedSalonFilter
+                        : authProvider.currentUser?.idSalon,
                     userId: isAdmin ? null : authProvider.currentUser?.id,
                     startDate: _startDate,
                     endDate: _endDate,
@@ -145,7 +143,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child:
+                            CircularProgressIndicator(color: AppColors.primary),
                       );
                     }
 
@@ -154,16 +153,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
+                            Icon(Icons.error_outline,
+                                size: 64, color: Colors.red[400]),
                             const SizedBox(height: 16),
                             Text(
                               'Error al cargar transacciones',
-                              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.grey[600]),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               snapshot.error.toString(),
-                              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey[500]),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -181,7 +183,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                             const SizedBox(height: 16),
                             Text(
                               'No hay transacciones',
-                              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.grey[600]),
                             ),
                           ],
                         ),
@@ -189,17 +192,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     }
 
                     final sales = snapshot.data!;
-                    final totalIngresos = sales.fold(0.0, (sum, sale) => sum + sale.total);
+                    final totalIngresos =
+                        sales.fold(0.0, (sum, sale) => sum + sale.total);
 
                     return Column(
                       children: [
-                        // Tarjeta de resumen
                         SummaryCard(
                           totalIngresos: totalIngresos,
                           cantidadTransacciones: sales.length,
                         ),
-
-                        // Lista de ventas
                         Expanded(
                           child: ListView.builder(
                             padding: const EdgeInsets.only(bottom: 16),
@@ -212,7 +213,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => TransactionDetailScreen(sale: sale),
+                                      builder: (context) =>
+                                          TransactionDetailScreen(sale: sale),
                                     ),
                                   );
                                 },
