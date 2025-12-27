@@ -7,12 +7,16 @@ import 'providers/providers_exports.dart';
 import 'ui/screens/screens_exports.dart';
 import 'themes/theme.dart';
 import 'ui/widgets/auth_wrapper.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = 
     GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting('es_ES', null);
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

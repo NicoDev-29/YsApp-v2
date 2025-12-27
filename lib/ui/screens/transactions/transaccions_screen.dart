@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:ysa_app/providers/providers_exports.dart';
 import 'package:ysa_app/services/navigation_service.dart';
 import 'package:ysa_app/themes/theme.dart';
@@ -78,6 +79,21 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     Navigator.pushNamed(context, '/sales');
   }
 
+  // Método para agrupar ventas por día
+  Map<String, List<SaleModel>> _groupSalesByDay(List<SaleModel> sales) {
+    final Map<String, List<SaleModel>> grouped = {};
+    
+    for (var sale in sales) {
+      final dayKey = DateFormat('yyyy-MM-dd').format(sale.fecha);
+      if (!grouped.containsKey(dayKey)) {
+        grouped[dayKey] = [];
+      }
+      grouped[dayKey]!.add(sale);
+    }
+    
+    return grouped;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -103,7 +119,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               CustomAppBar(
                 title: 'TRANSACCIONES',
                 showAddButton: true,
-                onAddPressed: _navigateToSales,),
+                onAddPressed: _navigateToSales,
+              ),
               if (isAdmin)
                 SalonSelector(
                   selectedSalon: _selectedSalonFilter,
@@ -143,8 +160,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                        child:
-                            CircularProgressIndicator(color: AppColors.primary),
+                        child: CircularProgressIndicator(color: AppColors.primary),
                       );
                     }
 
@@ -195,6 +211,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     final totalIngresos =
                         sales.fold(0.0, (sum, sale) => sum + sale.total);
 
+                    // Agrupar ventas por día
+                    final ventasPorDia = _groupSalesByDay(sales);
+                    final diasOrdenados = ventasPorDia.keys.toList()
+                      ..sort((a, b) => b.compareTo(a)); // Más reciente primero
+
                     return Column(
                       children: [
                         SummaryCard(
@@ -204,20 +225,32 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         Expanded(
                           child: ListView.builder(
                             padding: const EdgeInsets.only(bottom: 16),
-                            itemCount: sales.length,
+                            itemCount: diasOrdenados.length,
                             itemBuilder: (context, index) {
-                              final sale = sales[index];
-                              return TransactionCard(
-                                sale: sale,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          TransactionDetailScreen(sale: sale),
-                                    ),
-                                  );
-                                },
+                              final diaKey = diasOrdenados[index];
+                              final ventasDelDia = ventasPorDia[diaKey]!;
+                              final fecha = DateTime.parse(diaKey);
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Header del día
+                                  _buildDateHeader(fecha, ventasDelDia.length),
+                                  
+                                  // Ventas del día
+                                  ...ventasDelDia.map((sale) => TransactionCard(
+                                    sale: sale,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              TransactionDetailScreen(sale: sale),
+                                        ),
+                                      );
+                                    },
+                                  )),
+                                ],
                               );
                             },
                           ),
@@ -230,6 +263,64 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // Widget del header de fecha
+  Widget _buildDateHeader(DateTime date, int ventasCount) {
+    final dateFormat = DateFormat('EEEE, d \'de\' MMMM', 'es_ES');
+    final isToday = DateTime.now().day == date.day &&
+                    DateTime.now().month == date.month &&
+                    DateTime.now().year == date.year;
+    
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isToday ? AppColors.primary.withOpacity(0.08) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isToday ? AppColors.primary.withOpacity(0.3) : Colors.transparent,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.calendar_today,
+            size: 16,
+            color: isToday ? AppColors.primary : Colors.grey[700],
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isToday ? 'Hoy' : dateFormat.format(date),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isToday ? AppColors.primary : Colors.grey[800],
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isToday 
+                  ? AppColors.primary 
+                  : Colors.grey[300],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '$ventasCount',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isToday ? Colors.white : Colors.grey[700],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

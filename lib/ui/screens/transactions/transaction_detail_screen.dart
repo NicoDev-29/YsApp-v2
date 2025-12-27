@@ -14,6 +14,11 @@ class TransactionDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //  Formatear número de venta con día
+    final dia = DateFormat('dd').format(sale.fecha);
+    final numeroVenta = sale.numeroVentaDia.toString().padLeft(3, '0');
+    final numeroDisplay = '#$dia-$numeroVenta';
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
@@ -25,7 +30,7 @@ class TransactionDetailScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back, color: Colors.black87),
           ),
           title: Text(
-            'Venta ${sale.numeroDisplay}',
+            'Venta $numeroDisplay',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -34,17 +39,19 @@ class TransactionDetailScreen extends StatelessWidget {
           ),
           centerTitle: true,
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildInfoCard(),
-              const SizedBox(height: 16),
-              _buildItemsCard(),
-              const SizedBox(height: 16),
-              _buildTotalCard(),
-            ],
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoCard(),
+                const SizedBox(height: 16),
+                _buildItemsCard(),
+                const SizedBox(height: 16),
+                _buildTotalCard(),
+              ],
+            ),
           ),
         ),
       ),
@@ -62,7 +69,10 @@ class TransactionDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow('Fecha', DateFormat('dd/MM/yyyy HH:mm').format(sale.fecha)),
+          // Fecha y hora separadas
+          _buildInfoRow('Fecha', DateFormat('dd/MM/yyyy').format(sale.fecha)),
+          const Divider(height: 24),
+          _buildInfoRow('Hora', DateFormat('HH:mm').format(sale.fecha)),
           const Divider(height: 24),
           _buildInfoRow('Usuario', sale.nombreUsuario),
           const Divider(height: 24),
