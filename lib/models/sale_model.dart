@@ -3,16 +3,18 @@ import 'cart_item_model.dart';
 
 class SaleModel {
   final String id;
+  final int numeroVentaDia;
   final DateTime fecha;
   final String idUsuario;
   final String nombreUsuario;
   final String idSalon;
-  final String metodoPago; // 'efectivo', 'yape', 'tarjeta'
+  final String metodoPago;
   final double total;
   final List<CartItemModel> items;
 
   SaleModel({
     required this.id,
+    required this.numeroVentaDia,
     required this.fecha,
     required this.idUsuario,
     required this.nombreUsuario,
@@ -22,9 +24,15 @@ class SaleModel {
     required this.items,
   });
 
-  // Convertir a Map para Firestore
+  String get numeroDisplay => '#${numeroVentaDia.toString().padLeft(2, '0')}';
+  
+  String get salonNombre => idSalon == 'salon_principal' 
+      ? 'Salón Principal' 
+      : 'Salón Secundario';
+
   Map<String, dynamic> toFirestore() {
     return {
+      'numeroVentaDia': numeroVentaDia,
       'fecha': Timestamp.fromDate(fecha),
       'idUsuario': idUsuario,
       'nombreUsuario': nombreUsuario,
@@ -35,12 +43,12 @@ class SaleModel {
     };
   }
 
-  // Crear desde Firestore
   factory SaleModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     
     return SaleModel(
       id: doc.id,
+      numeroVentaDia: data['numeroVentaDia'] ?? 0,
       fecha: (data['fecha'] as Timestamp).toDate(),
       idUsuario: data['idUsuario'] ?? '',
       nombreUsuario: data['nombreUsuario'] ?? '',
@@ -53,7 +61,6 @@ class SaleModel {
     );
   }
 
-  // Helper para convertir Map a CartItemModel
   static CartItemModel _cartItemFromMap(Map<String, dynamic> map) {
     return CartItemModel(
       id: map['id'] ?? '',

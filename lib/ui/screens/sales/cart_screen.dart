@@ -28,7 +28,6 @@ class CartScreen extends StatelessWidget {
     return Scaffold(
       resizeToAvoidBottomInset:
           true, // Ajustar contenido cuando aparece teclado
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

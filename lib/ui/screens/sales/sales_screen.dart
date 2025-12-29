@@ -79,7 +79,7 @@ class _SalesScreenState extends State<SalesScreen>
     final salesProvider = Provider.of<SalesProvider>(context);
     final isAdmin = authProvider.isAdmin;
 
-    // 🔥 DETECTAR CAMBIO DE USUARIO Y LIMPIAR CARRITO AUTOMÁTICAMENTE
+    // DETECTAR CAMBIO DE USUARIO Y LIMPIAR CARRITO AUTOMÁTICAMENTE
     WidgetsBinding.instance.addPostFrameCallback((_) {
       salesProvider.checkUserChange(authProvider);
     });

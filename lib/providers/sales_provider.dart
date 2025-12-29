@@ -6,7 +6,7 @@ import 'auth_provider.dart';
 class SalesProvider extends ChangeNotifier {
   final SalesService _salesService = SalesService();
 
-  // Carrito
+  // ==================== CARRITO (Pantalla de Vender) ====================
   List<CartItemModel> _cartItems = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -24,12 +24,10 @@ class SalesProvider extends ChangeNotifier {
   // Cantidad de items
   int get cartItemCount => _cartItems.length;
 
-  //NUEVO: Detectar cambio de usuario
-  
+  // Detectar cambio de usuario
   void checkUserChange(AuthProvider authProvider) {
     final currentUserId = authProvider.currentUser?.id;
     
-    // Si cambió el usuario o cerró sesión
     if (_lastUserId != null && _lastUserId != currentUserId) {
       print(' [SalesProvider] Cambio de usuario detectado');
       print(' [SalesProvider] Usuario anterior: $_lastUserId');
@@ -50,18 +48,15 @@ class SalesProvider extends ChangeNotifier {
     String? imagen,
     int stockDisponible,
   ) {
-    // Verificar si ya existe
     final existingIndex = _cartItems.indexWhere(
       (item) => item.productoId == productoId && item.tipo == 'producto',
     );
 
     if (existingIndex >= 0) {
-      // Incrementar cantidad si no excede stock
       if (_cartItems[existingIndex].cantidad < stockDisponible) {
         _cartItems[existingIndex].cantidad++;
       }
     } else {
-      // Agregar nuevo
       _cartItems.add(CartItemModel.fromProduct(
         productoId,
         nombre,
@@ -254,13 +249,25 @@ class SalesProvider extends ChangeNotifier {
     }
   }
 
-  // Stream de ventas
-  Stream<List<SaleModel>> getSales({String? salonId}) {
-    return _salesService.getSales(salonId: salonId);
-  }
-
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  // ==================== TRANSACCIONES (Pantalla de Transacciones) ====================
+  
+  // Stream de ventas con filtros (MÉTODO CORRECTO)
+  Stream<List<SaleModel>> getSales({
+    String? salonId,
+    String? userId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    return _salesService.getSales(
+      salonId: salonId,
+      userId: userId,
+      startDate: startDate,
+      endDate: endDate,
+    );
   }
 }

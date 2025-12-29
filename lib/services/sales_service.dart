@@ -5,7 +5,7 @@ import '../models/cart_item_model.dart';
 class SalesService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Registrar venta completa
+  // ==================== REGISTRAR VENTA ====================
   Future<String> registerSale({
     required String userId,
     required String userName,
@@ -16,10 +16,26 @@ class SalesService {
   }) async {
     final batch = _firestore.batch();
 
-    // 1. Crear documento de venta
+    // Calcular número de venta del día
+    final hoy = DateTime.now();
+    final inicioDia = DateTime(hoy.year, hoy.month, hoy.day);
+    final finDia = inicioDia.add(const Duration(days: 1));
+    
+    // Esta query necesita el Índice 3: idSalon + fecha
+    final ventasHoy = await _firestore
+        .collection('ventas')
+        .where('idSalon', isEqualTo: salonId)
+        .where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(inicioDia))
+        .where('fecha', isLessThan: Timestamp.fromDate(finDia))
+        .get();
+    
+    final numeroVentaDia = ventasHoy.docs.length + 1;
+
+    // Crear documento de venta
     final saleRef = _firestore.collection('ventas').doc();
     final sale = SaleModel(
       id: saleRef.id,
+      numeroVentaDia: numeroVentaDia,
       fecha: DateTime.now(),
       idUsuario: userId,
       nombreUsuario: userName,
@@ -30,10 +46,9 @@ class SalesService {
     );
     batch.set(saleRef, sale.toFirestore());
 
-    // 2. Procesar cada item
+    // Procesar cada item
     for (var item in items) {
       if (item.tipo == 'producto') {
-        // Reducir stock del producto
         await _updateProductStock(
           batch,
           item.productoId!,
@@ -41,7 +56,6 @@ class SalesService {
           salonId,
         );
 
-        // Registrar movimiento de venta
         await _registerMovement(
           batch,
           tipo: 'venta',
@@ -54,7 +68,6 @@ class SalesService {
           ventaId: saleRef.id,
         );
       } else if (item.tipo == 'servicio') {
-        // Reducir stock de productos usados en el servicio
         for (var productUsed in item.productosUsados) {
           await _updateProductStock(
             batch,
@@ -63,7 +76,6 @@ class SalesService {
             salonId,
           );
 
-          // Registrar movimiento
           await _registerMovement(
             batch,
             tipo: 'venta',
@@ -84,7 +96,6 @@ class SalesService {
     return saleRef.id;
   }
 
-  // Actualizar stock de producto
   Future<void> _updateProductStock(
     WriteBatch batch,
     String productId,
@@ -102,7 +113,6 @@ class SalesService {
     }
   }
 
-  // Registrar movimiento de inventario
   Future<void> _registerMovement(
     WriteBatch batch, {
     required String tipo,
@@ -129,15 +139,35 @@ class SalesService {
     });
   }
 
-  // Stream de ventas (para historial futuro)
-  Stream<List<SaleModel>> getSales({String? salonId}) {
-    Query query = _firestore
-        .collection('ventas')
-        .orderBy('fecha', descending: true);
+  // ==================== CONSULTAR VENTAS ====================
+  Stream<List<SaleModel>> getSales({
+    String? salonId,
+    String? userId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    Query query = _firestore.collection('ventas');
 
+    // Decidir qué índice usar según los filtros
     if (salonId != null && salonId.isNotEmpty) {
+      // Usa Índice 1: idSalon + fecha
       query = query.where('idSalon', isEqualTo: salonId);
+    } else if (userId != null && userId.isNotEmpty) {
+      // Usa Índice 2: idUsuario + fecha
+      query = query.where('idUsuario', isEqualTo: userId);
     }
+
+    // Agregar filtros de fecha
+    if (startDate != null) {
+      query = query.where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate));
+    }
+
+    if (endDate != null) {
+      query = query.where('fecha', isLessThanOrEqualTo: Timestamp.fromDate(endDate));
+    }
+
+    // Ordenar por fecha descendente
+    query = query.orderBy('fecha', descending: true);
 
     return query.snapshots().map((snapshot) {
       return snapshot.docs

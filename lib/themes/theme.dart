@@ -5,6 +5,7 @@ class AppColors {
   static const Color secondary = Colors.white; 
   static const Color tertiary = Colors.black; 
   static const Color plomo = Color.fromARGB(255, 122, 122, 122); 
+  static const Color background2 = Color.fromRGBO(238, 238, 238, 1);
   static const Color gradient1 = Color.fromARGB(255, 228, 135, 171);
   static const Color gradient2 = Color.fromARGB(255, 233, 89, 149);
   static const Color borderGrey = Color(0xFFE0E0E0); // Borde gris claro

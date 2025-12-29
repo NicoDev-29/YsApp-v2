@@ -28,7 +28,7 @@ final List<MenuOption> menuOptions = [
     index: 1, 
     label: 'Transacciones', 
     icon: Icons.compare_arrows, 
-    routeName: '/transacciones',
+    routeName: '/transactions',
   ),
   MenuOption(
     index: 2, 
