@@ -47,7 +47,7 @@ final List<MenuOption> menuOptions = [
     index: 4, 
     label: 'Reportes', 
     icon: Icons.bar_chart, 
-    routeName: '/reportes', 
+    routeName: '/reports', 
     allowedRoles: const ['admin'],
   ),
 ];

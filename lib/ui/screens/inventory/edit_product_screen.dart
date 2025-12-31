@@ -24,6 +24,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nombreController;
   late TextEditingController _precioController;
+  late TextEditingController _stockMinimoController;
 
   String? _selectedSalon;
   String? _selectedCategoria;
@@ -52,8 +53,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
   void initState() {
     super.initState();
     _nombreController = TextEditingController(text: widget.product.nombre);
-    _precioController =
-        TextEditingController(text: widget.product.precio.toString());
+    _precioController = TextEditingController(text: widget.product.precio.toString());
+    _stockMinimoController = TextEditingController(text: widget.product.stockMinimo.toString());
     _currentStock = widget.product.stock;
     _selectedSalon = widget.product.idSalon;
     _selectedCategoria = widget.product.categoria;
@@ -63,6 +64,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   void dispose() {
     _nombreController.dispose();
     _precioController.dispose();
+    _stockMinimoController.dispose();
     super.dispose();
   }
 
@@ -114,6 +116,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         'nombre': _nombreController.text.trim(),
         'precio': double.parse(_precioController.text),
         'stock': _currentStock,
+        'stockMinimo': int.parse(_stockMinimoController.text),
         'categoria': _selectedCategoria,
         'idSalon': _selectedSalon,
       },
@@ -353,6 +356,21 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           ],
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      label: 'Stock Mínimo',
+                      controller: _stockMinimoController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Ingresa el stock mínimo';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Stock inválido';
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ),

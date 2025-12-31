@@ -69,7 +69,8 @@ class InventoryService {
     final productData = product.toFirestore();
     productData['imagen'] = imageUrl;
 
-    final productRef = await _firestore.collection('productos').add(productData);
+    final productRef =
+        await _firestore.collection('productos').add(productData);
 
     // Registrar movimiento de INGRESO
     await _firestore.collection('movimientos').add({
@@ -136,9 +137,8 @@ class InventoryService {
 
     // Determinar tipo según el signo
     final tipo = diferencia > 0 ? 'entrada_manual' : 'salida_manual';
-    final motivo = diferencia > 0 
-        ? 'Entrada manual de stock'
-        : 'Salida manual de stock';
+    final motivo =
+        diferencia > 0 ? 'Entrada manual de stock' : 'Salida manual de stock';
 
     // Registrar movimiento
     await _firestore.collection('movimientos').add({
@@ -213,6 +213,7 @@ class InventoryService {
         'nombre': fromProductData['nombre'],
         'precio': fromProductData['precio'],
         'stock': cantidad,
+        'stockMinimo': fromProductData['stockMinimo'] ?? 5,
         'categoria': fromProductData['categoria'],
         'idSalon': hacia,
         'imagen': fromProductData['imagen'],
@@ -249,9 +250,10 @@ class InventoryService {
 
     for (var item in productos) {
       // 1. Reducir stock del producto
-      final productRef = _firestore.collection('productos').doc(item['productoId']);
+      final productRef =
+          _firestore.collection('productos').doc(item['productoId']);
       final productDoc = await productRef.get();
-      
+
       if (productDoc.exists) {
         final currentStock = productDoc.data()!['stock'] as int;
         batch.update(productRef, {

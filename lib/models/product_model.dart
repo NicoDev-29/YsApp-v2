@@ -5,6 +5,7 @@ class ProductModel {
   final String nombre;
   final double precio;
   final int stock;
+  final int stockMinimo;
   final String categoria;
   final String idSalon;
   final String? imagen;
@@ -17,6 +18,7 @@ class ProductModel {
     required this.nombre,
     required this.precio,
     required this.stock,
+    this.stockMinimo = 5,
     required this.categoria,
     required this.idSalon,
     this.imagen,
@@ -25,7 +27,6 @@ class ProductModel {
     this.createdAt,
   });
 
-  // Desde Firestore
   factory ProductModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return ProductModel(
@@ -33,6 +34,7 @@ class ProductModel {
       nombre: data['nombre'] ?? '',
       precio: (data['precio'] ?? 0).toDouble(),
       stock: data['stock'] ?? 0,
+      stockMinimo: data['stockMinimo'] ?? 5,
       categoria: data['categoria'] ?? '',
       idSalon: data['idSalon'] ?? '',
       imagen: data['imagen'],
@@ -44,12 +46,12 @@ class ProductModel {
     );
   }
 
-  // Hacia Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'nombre': nombre,
       'precio': precio,
       'stock': stock,
+      'stockMinimo': stockMinimo,
       'categoria': categoria,
       'idSalon': idSalon,
       'imagen': imagen,
@@ -61,7 +63,6 @@ class ProductModel {
     };
   }
 
-  // Nombre del salón para mostrar
   String get salonName {
     return idSalon == 'salon_principal' ? 'Salón Principal' : 'Salón Secundario';
   }

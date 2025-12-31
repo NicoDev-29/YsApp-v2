@@ -23,6 +23,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _precioController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
+  final TextEditingController _stockMinimoController = TextEditingController(text: '5');
 
   String? _selectedSalon;
   String? _selectedCategoria;
@@ -51,10 +52,10 @@ class _AddProductDialogState extends State<AddProductDialog> {
     _nombreController.dispose();
     _precioController.dispose();
     _stockController.dispose();
+    _stockMinimoController.dispose();
     super.dispose();
   }
 
-  // Mostrar opciones y seleccionar imagen
   Future<void> _handleImageSelection() async {
     await ImageSourceHelper.showImageSourceOptions(
       context: context,
@@ -91,6 +92,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
       nombre: _nombreController.text.trim(),
       precio: double.parse(_precioController.text),
       stock: int.parse(_stockController.text),
+      stockMinimo: int.parse(_stockMinimoController.text),
       categoria: _selectedCategoria!,
       idSalon: _selectedSalon!,
       imagen: _selectedImage?.path,
@@ -143,7 +145,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                // Header
                 DialogHeader(
                   title: 'Añadir Producto',
                   onClose: () => Navigator.pop(context),
@@ -151,7 +152,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
                 const SizedBox(height: 20),
 
-                // Campo Nombre
                 CustomTextField(
                   label: 'Nombre',
                   controller: _nombreController,
@@ -165,7 +165,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
                 const SizedBox(height: 16),
 
-                // Salón
                 CustomDropdown(
                   label: 'Salon',
                   value: _selectedSalon,
@@ -176,7 +175,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
                 const SizedBox(height: 16),
 
-                // Categoría
                 CustomDropdown(
                   label: 'Categoria',
                   value: _selectedCategoria,
@@ -188,7 +186,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
                 const SizedBox(height: 16),
 
-                // Precio y Stock en fila
                 Row(
                   children: [
                     Expanded(
@@ -230,7 +227,23 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
                 const SizedBox(height: 16),
 
-                // Selector de Imagen
+                CustomTextField(
+                  label: 'Stock Mínimo',
+                  controller: _stockMinimoController,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Ingresa el stock mínimo';
+                    }
+                    if (int.tryParse(value) == null) {
+                      return 'Stock inválido';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
                 ImagePickerWidget(
                   selectedImage: _selectedImage,
                   onTap: _handleImageSelection,
@@ -241,7 +254,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
                 const SizedBox(height: 40),
 
-                // Botón Añadir
                 SizedBox(
                   width: double.infinity,
                   height: 50,
