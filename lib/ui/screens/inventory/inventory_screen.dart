@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:ysa_app/providers/providers_exports.dart';
 import 'package:ysa_app/themes/theme.dart';
 import 'package:ysa_app/models/models_exports.dart';
@@ -8,7 +9,6 @@ import 'package:ysa_app/ui/widgets/widgets_exports.dart';
 import 'package:ysa_app/services/services_exports.dart';
 
 import '../screens_exports.dart';
-
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({Key? key}) : super(key: key);
@@ -21,26 +21,45 @@ class _InventoryScreenState extends State<InventoryScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
+  bool _isSearching = false;
   int currentIndex = 2;
 
-  // Filtro de salón
   String? _selectedSalonFilter = 'salon_principal';
-  
-  // Filtro de tipo de movimiento
   String _tipoMovimientoFilter = 'todos';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    
+    _searchFocusNode.addListener(() {
+      setState(() {
+        _isSearching = _searchFocusNode.hasFocus;
+      });
+    });
+    
+    _searchController.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _searchQuery = '';
+    _searchFocusNode.unfocus();
+    setState(() {
+      _isSearching = false;
+    });
   }
 
   void _showAddDialog() {
@@ -197,14 +216,29 @@ class _InventoryScreenState extends State<InventoryScreen>
     }
   }
 
-  // Widget de filtros para movimientos
   Widget _buildMovementFilters() {
     final filters = [
       {'value': 'todos', 'label': 'Todos', 'icon': Icons.grid_view},
-      {'value': 'transferencia', 'label': 'Transferencias', 'icon': Icons.swap_horiz},
-      {'value': 'entrada_manual', 'label': 'Entradas', 'icon': Icons.arrow_upward},
-      {'value': 'salida_manual', 'label': 'Salidas', 'icon': Icons.arrow_downward},
-      {'value': 'ingreso', 'label': 'Ingresos', 'icon': Icons.add_circle_outline},
+      {
+        'value': 'transferencia',
+        'label': 'Transferencias',
+        'icon': Icons.swap_horiz
+      },
+      {
+        'value': 'entrada_manual',
+        'label': 'Entradas',
+        'icon': Icons.arrow_upward
+      },
+      {
+        'value': 'salida_manual',
+        'label': 'Salidas',
+        'icon': Icons.arrow_downward
+      },
+      {
+        'value': 'ingreso',
+        'label': 'Ingresos',
+        'icon': Icons.add_circle_outline
+      },
       {'value': 'venta', 'label': 'Ventas', 'icon': Icons.shopping_cart_outlined},
     ];
 
@@ -217,7 +251,7 @@ class _InventoryScreenState extends State<InventoryScreen>
         itemBuilder: (context, index) {
           final filter = filters[index];
           final isSelected = _tipoMovimientoFilter == filter['value'];
-          
+
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
@@ -258,6 +292,21 @@ class _InventoryScreenState extends State<InventoryScreen>
     );
   }
 
+  Map<String, List<MovementModel>> _groupMovementsByDay(
+      List<MovementModel> movements) {
+    final Map<String, List<MovementModel>> grouped = {};
+
+    for (var movement in movements) {
+      final dayKey = DateFormat('yyyy-MM-dd').format(movement.fecha);
+      if (!grouped.containsKey(dayKey)) {
+        grouped[dayKey] = [];
+      }
+      grouped[dayKey]!.add(movement);
+    }
+
+    return grouped;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -280,15 +329,14 @@ class _InventoryScreenState extends State<InventoryScreen>
         body: SafeArea(
           child: Column(
             children: [
-              // Header con widget reutilizable
-              CustomAppBar(
-                title: 'INVENTARIO',
-                showAddButton: isAdmin && _tabController.index != 2,
-                onAddPressed: _showAddDialog,
-              ),
+              if (!_isSearching)
+                CustomAppBar(
+                  title: 'INVENTARIO',
+                  showAddButton: isAdmin && _tabController.index != 2,
+                  onAddPressed: _showAddDialog,
+                ),
 
-              // Selector de Salón (aparece en todas las tabs para admin)
-              if (isAdmin)
+              if (isAdmin && !_isSearching)
                 SalonSelector(
                   selectedSalon: _selectedSalonFilter,
                   onChanged: (value) {
@@ -298,38 +346,44 @@ class _InventoryScreenState extends State<InventoryScreen>
                   },
                 ),
 
-              // Tabs con widget reutilizable
-              CustomTabBar(
-                controller: _tabController,
-                tabs: const ['Products', 'Services', 'Movi'],
-                onTap: (index) {
-                  setState(() {});
-                },
-              ),
+              if (!_isSearching)
+                CustomTabBar(
+                  controller: _tabController,
+                  tabs: const ['Products', 'Services', 'Movi'],
+                  onTap: (index) {
+                    setState(() {});
+                  },
+                ),
 
-              const SizedBox(height: 10),
+              if (!_isSearching) const SizedBox(height: 10),
 
-              // Mostrar según la tab activa
-              if (_tabController.index == 2)
+              if (_tabController.index == 2 && !_isSearching)
                 _buildMovementFilters()
               else
-                // Buscador con widget reutilizable
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    _isSearching ? 16 : 0,
+                    16,
+                    16,
+                  ),
                   child: CustomSearchBar(
                     controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    isSearching: _isSearching,
                     hintText: 'Buscar',
                     onChanged: (value) {
                       setState(() {
                         _searchQuery = value.toLowerCase();
                       });
                     },
+                    onClear: _clearSearch,
                   ),
                 ),
 
-              const SizedBox(height: 16),
+              if (!_isSearching && _tabController.index != 2) 
+                const SizedBox(height: 8),
 
-              // Contenido de los tabs
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -503,18 +557,15 @@ class _InventoryScreenState extends State<InventoryScreen>
           );
         }
 
-        // Filtrar movimientos por salón y tipo
         final movements = snapshot.data!.where((movement) {
-          // Filtro por salón
           bool matchesSalon = _selectedSalonFilter == null ||
               movement.desde == _selectedSalonFilter ||
               movement.hacia == _selectedSalonFilter ||
               movement.salonId == _selectedSalonFilter;
-          
-          // Filtro por tipo
+
           bool matchesTipo = _tipoMovimientoFilter == 'todos' ||
               movement.tipo == _tipoMovimientoFilter;
-          
+
           return matchesSalon && matchesTipo;
         }).toList();
 
@@ -525,11 +576,25 @@ class _InventoryScreenState extends State<InventoryScreen>
           );
         }
 
+        final movementsByDay = _groupMovementsByDay(movements);
+        final sortedDays = movementsByDay.keys.toList()
+          ..sort((a, b) => b.compareTo(a));
+
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: movements.length,
+          padding: const EdgeInsets.only(bottom: 16),
+          itemCount: sortedDays.length,
           itemBuilder: (context, index) {
-            return MovementItem(movement: movements[index]);
+            final dayKey = sortedDays[index];
+            final dayMovements = movementsByDay[dayKey]!;
+            final date = DateTime.parse(dayKey);
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DateHeader(date: date, itemCount: dayMovements.length),
+                ...dayMovements.map((movement) => MovementItem(movement: movement)),
+              ],
+            );
           },
         );
       },

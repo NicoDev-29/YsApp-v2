@@ -72,7 +72,7 @@ class TransactionDetailScreen extends StatelessWidget {
           // Fecha y hora separadas
           _buildInfoRow('Fecha', DateFormat('dd/MM/yyyy').format(sale.fecha)),
           const Divider(height: 24),
-          _buildInfoRow('Hora', DateFormat('HH:mm').format(sale.fecha)),
+          _buildInfoRow('Hora', DateFormat('hh:mm a').format(sale.fecha)),
           const Divider(height: 24),
           _buildInfoRow('Usuario', sale.nombreUsuario),
           const Divider(height: 24),

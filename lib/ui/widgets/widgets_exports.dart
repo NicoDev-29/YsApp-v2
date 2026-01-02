@@ -1,5 +1,4 @@
 export 'menu/custom_side_menu.dart';
-export 'custom_header.dart';
 export 'custom_app_bar.dart';
 export'cards/personal_card.dart';
 export 'add_button.dart';
@@ -47,6 +46,7 @@ export 'transactions/date_selector.dart';
 export 'transactions/period_filter_tabs.dart';
 export 'transactions/summary_card.dart';
 export 'transactions/transaccion_card.dart';
+export 'date_header.dart';
 
 
 

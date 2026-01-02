@@ -34,7 +34,6 @@ class MovementItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Ícono del tipo de movimiento
           Container(
             width: 48,
             height: 48,
@@ -51,12 +50,10 @@ class MovementItem extends StatelessWidget {
 
           const SizedBox(width: 12),
 
-          // Contenido principal
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header: Nombre del producto y tag
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -80,7 +77,6 @@ class MovementItem extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
-                // Transferencia o salón
                 if (movement.tipo == 'transferencia')
                   _buildTransferenciaRow()
                 else
@@ -88,7 +84,6 @@ class MovementItem extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
-                // Footer: Cantidad y fecha
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -101,7 +96,7 @@ class MovementItem extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      _formatFecha(),
+                      DateFormat('hh:mm a').format(movement.fecha),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],
@@ -117,7 +112,6 @@ class MovementItem extends StatelessWidget {
     );
   }
 
-  // Tag del tipo de movimiento
   Widget _buildTypeChip() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -139,11 +133,9 @@ class MovementItem extends StatelessWidget {
     );
   }
 
-  // Fila de transferencia (chips separados para cada salón)
   Widget _buildTransferenciaRow() {
     return Row(
       children: [
-        // Chip del salón origen
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
@@ -160,7 +152,6 @@ class MovementItem extends StatelessWidget {
           ),
         ),
 
-        // Flecha sin fondo
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Icon(
@@ -170,7 +161,6 @@ class MovementItem extends StatelessWidget {
           ),
         ),
 
-        // Chip del salón destino
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
@@ -190,7 +180,6 @@ class MovementItem extends StatelessWidget {
     );
   }
 
-  // Fila de salón (con fondo gris)
   Widget _buildSalonRow() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -220,7 +209,6 @@ class MovementItem extends StatelessWidget {
     );
   }
 
-  // Formato de cantidad
   String _formatCantidad() {
     switch (movement.tipo) {
       case 'entrada_manual':
@@ -238,12 +226,6 @@ class MovementItem extends StatelessWidget {
     }
   }
 
-  // Formato de fecha
-  String _formatFecha() {
-    return DateFormat('dd/MM/yyyy HH:mm').format(movement.fecha);
-  }
-
-  // Label del tipo
   String _getTipoLabel() {
     switch (movement.tipo) {
       case 'transferencia':
@@ -261,7 +243,6 @@ class MovementItem extends StatelessWidget {
     }
   }
 
-  // Color según tipo
   Color _getTipoColor() {
     switch (movement.tipo) {
       case 'transferencia':
@@ -279,7 +260,6 @@ class MovementItem extends StatelessWidget {
     }
   }
 
-  // Icono según tipo
   IconData _getTipoIcono() {
     switch (movement.tipo) {
       case 'transferencia':
