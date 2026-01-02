@@ -9,7 +9,7 @@ import 'themes/theme.dart';
 import 'ui/widgets/auth_wrapper.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = 
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
@@ -49,12 +49,15 @@ class MyApp extends StatelessWidget {
         '/': (context) => const AuthWrapper(),
         '/login': (context) => const LoginScreen(),
         '/profile': (context) => const ProfileScreen(),
-        '/sales': (context) =>  SalesScreen(),
+        '/sales': (context) => SalesScreen(),
         '/transactions': (context) => TransactionsScreen(),
-        '/inventory':(context) => InventoryScreen(),
+        '/inventory': (context) => InventoryScreen(),
         '/users': (context) => PersonalScreen(),
         '/reports': (context) => const ReportsScreen(),
-        '/reports/low-stock': (context) => const LowStockReportScreen(),
+        '/reports/low-stock': (context) => const LowStockScreen(),
+        '/reports/sales-summary': (context) => const SalesSummaryScreen(),
+        '/reports/top-products': (context) => const TopProductsScreen(),
+        '/reports/daily-sales': (context) => const DailySalesScreen(),
       },
     );
   }

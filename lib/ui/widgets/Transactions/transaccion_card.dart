@@ -18,7 +18,7 @@ class TransactionCard extends StatelessWidget {
     final cantProductos = sale.items.where((i) => i.tipo == 'producto').length;
     final cantServicios = sale.items.where((i) => i.tipo == 'servicio').length;
 
-    // ✅ ÚNICO CAMBIO: Formatear número con día
+    // 
     // Formato: #DIA-NUM → Ejemplo: #23-001
     final dia = DateFormat('dd').format(sale.fecha);
     final numeroVenta = sale.numeroVentaDia.toString().padLeft(3, '0');
@@ -62,7 +62,7 @@ class TransactionCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Venta $numeroDisplay', // ✅ Cambiado de sale.numeroDisplay a numeroDisplay
+                    'Venta $numeroDisplay', 
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -71,7 +71,7 @@ class TransactionCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    DateFormat('HH:mm').format(sale.fecha), // ✅ Solo hora
+                    DateFormat('hh:mm a').format(sale.fecha), 
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey[600],

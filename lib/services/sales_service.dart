@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ysa_app/models/models_exports.dart' show UserModel;
 import '../models/sale_model.dart';
 import '../models/cart_item_model.dart';
 
@@ -21,7 +22,6 @@ class SalesService {
     final inicioDia = DateTime(hoy.year, hoy.month, hoy.day);
     final finDia = inicioDia.add(const Duration(days: 1));
     
-    // Esta query necesita el Índice 3: idSalon + fecha
     final ventasHoy = await _firestore
         .collection('ventas')
         .where('idSalon', isEqualTo: salonId)
@@ -148,16 +148,12 @@ class SalesService {
   }) {
     Query query = _firestore.collection('ventas');
 
-    // Decidir qué índice usar según los filtros
     if (salonId != null && salonId.isNotEmpty) {
-      // Usa Índice 1: idSalon + fecha
       query = query.where('idSalon', isEqualTo: salonId);
     } else if (userId != null && userId.isNotEmpty) {
-      // Usa Índice 2: idUsuario + fecha
       query = query.where('idUsuario', isEqualTo: userId);
     }
 
-    // Agregar filtros de fecha
     if (startDate != null) {
       query = query.where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate));
     }
@@ -166,12 +162,28 @@ class SalesService {
       query = query.where('fecha', isLessThanOrEqualTo: Timestamp.fromDate(endDate));
     }
 
-    // Ordenar por fecha descendente
     query = query.orderBy('fecha', descending: true);
 
     return query.snapshots().map((snapshot) {
       return snapshot.docs
           .map((doc) => SaleModel.fromFirestore(doc))
+          .toList();
+    });
+  }
+
+  // ==================== CONSULTAR USUARIOS (PARA REPORTES) ====================
+  Stream<List<UserModel>> getUsers({String? salonId}) {
+    Query query = _firestore.collection('usuarios')
+        .where('activo', isEqualTo: true)
+        .where('idRol', isEqualTo: 'personal');
+
+    if (salonId != null && salonId.isNotEmpty && salonId != 'todos') {
+      query = query.where('idSalon', isEqualTo: salonId);
+    }
+
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => UserModel.fromFirestore(doc))
           .toList();
     });
   }

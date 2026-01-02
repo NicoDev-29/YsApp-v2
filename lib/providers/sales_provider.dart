@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/models_exports.dart';
 import '../services/services_exports.dart';
-import 'auth_provider.dart'; 
+import 'auth_provider.dart';
 
 class SalesProvider extends ChangeNotifier {
   final SalesService _salesService = SalesService();
@@ -10,7 +10,7 @@ class SalesProvider extends ChangeNotifier {
   List<CartItemModel> _cartItems = [];
   bool _isLoading = false;
   String? _errorMessage;
-  String? _lastUserId; 
+  String? _lastUserId;
 
   List<CartItemModel> get cartItems => _cartItems;
   bool get isLoading => _isLoading;
@@ -27,7 +27,7 @@ class SalesProvider extends ChangeNotifier {
   // Detectar cambio de usuario
   void checkUserChange(AuthProvider authProvider) {
     final currentUserId = authProvider.currentUser?.id;
-    
+
     if (_lastUserId != null && _lastUserId != currentUserId) {
       print(' [SalesProvider] Cambio de usuario detectado');
       print(' [SalesProvider] Usuario anterior: $_lastUserId');
@@ -36,7 +36,7 @@ class SalesProvider extends ChangeNotifier {
       clearCart();
       print(' [SalesProvider]  Carrito limpiado');
     }
-    
+
     _lastUserId = currentUserId;
   }
 
@@ -132,17 +132,17 @@ class SalesProvider extends ChangeNotifier {
     final index = _cartItems.indexWhere((item) => item.id == serviceItemId);
     if (index >= 0 && _cartItems[index].tipo == 'servicio') {
       final existing = _cartItems[index].productosUsados.indexWhere(
-        (p) => p.productoId == productoId,
-      );
+            (p) => p.productoId == productoId,
+          );
 
       if (existing >= 0) {
         _cartItems[index].productosUsados[existing].cantidad++;
       } else {
         _cartItems[index].productosUsados.add(ProductUsed(
-          productoId: productoId,
-          nombre: productoNombre,
-          cantidad: 1,
-        ));
+              productoId: productoId,
+              nombre: productoNombre,
+              cantidad: 1,
+            ));
       }
       notifyListeners();
     }
@@ -153,8 +153,8 @@ class SalesProvider extends ChangeNotifier {
     final index = _cartItems.indexWhere((item) => item.id == serviceItemId);
     if (index >= 0 && _cartItems[index].tipo == 'servicio') {
       final productIndex = _cartItems[index].productosUsados.indexWhere(
-        (p) => p.productoId == productoId,
-      );
+            (p) => p.productoId == productoId,
+          );
       if (productIndex >= 0) {
         _cartItems[index].productosUsados[productIndex].cantidad++;
         notifyListeners();
@@ -167,8 +167,8 @@ class SalesProvider extends ChangeNotifier {
     final index = _cartItems.indexWhere((item) => item.id == serviceItemId);
     if (index >= 0 && _cartItems[index].tipo == 'servicio') {
       final productIndex = _cartItems[index].productosUsados.indexWhere(
-        (p) => p.productoId == productoId,
-      );
+            (p) => p.productoId == productoId,
+          );
       if (productIndex >= 0) {
         if (_cartItems[index].productosUsados[productIndex].cantidad > 1) {
           _cartItems[index].productosUsados[productIndex].cantidad--;
@@ -183,21 +183,22 @@ class SalesProvider extends ChangeNotifier {
     final index = _cartItems.indexWhere((item) => item.id == serviceItemId);
     if (index >= 0) {
       _cartItems[index].productosUsados.removeWhere(
-        (p) => p.productoId == productoId,
-      );
+            (p) => p.productoId == productoId,
+          );
       notifyListeners();
     }
   }
 
   // Actualizar cantidad de producto usado en servicio
-  void updateProductUsedQuantity(String serviceItemId, String productoId, int newQuantity) {
+  void updateProductUsedQuantity(
+      String serviceItemId, String productoId, int newQuantity) {
     if (newQuantity < 1) return;
-    
+
     final index = _cartItems.indexWhere((item) => item.id == serviceItemId);
     if (index >= 0 && _cartItems[index].tipo == 'servicio') {
       final productIndex = _cartItems[index].productosUsados.indexWhere(
-        (p) => p.productoId == productoId,
-      );
+            (p) => p.productoId == productoId,
+          );
       if (productIndex >= 0) {
         _cartItems[index].productosUsados[productIndex].cantidad = newQuantity;
         notifyListeners();
@@ -254,9 +255,9 @@ class SalesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ==================== TRANSACCIONES (Pantalla de Transacciones) ====================
-  
-  // Stream de ventas con filtros (MÉTODO CORRECTO)
+  // ==================== REPORTES ====================
+
+  // Stream de ventas con filtros
   Stream<List<SaleModel>> getSales({
     String? salonId,
     String? userId,
@@ -269,5 +270,10 @@ class SalesProvider extends ChangeNotifier {
       startDate: startDate,
       endDate: endDate,
     );
+  }
+
+  // Stream de usuarios (trabajadoras) para filtros de reportes
+  Stream<List<UserModel>> getUsers({String? salonId}) {
+    return _salesService.getUsers(salonId: salonId);
   }
 }

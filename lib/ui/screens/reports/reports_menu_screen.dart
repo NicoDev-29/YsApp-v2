@@ -57,19 +57,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     const SizedBox(height: 20),
                     _buildReportCard(
                       context: context,
-                      icon: Icons.people_alt_rounded,
-                      iconColor: Colors.black87,
-                      iconBackgroundColor: const Color(0xFFF48FB1),
-                      borderColor: const Color(0xFFF48FB1),
-                      title: 'Ventas por Trabajadora',
-                      description: 'Evalúa el desempeño individual de cada trabajadora del salón',
-                      onTap: () {
-                        Navigator.pushNamed(context, '/reports/sales-by-worker');
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    _buildReportCard(
-                      context: context,
                       icon: Icons.lightbulb_outline_rounded,
                       iconColor: Colors.black87,
                       iconBackgroundColor:const Color(0xFF9B87C1),
@@ -80,6 +67,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         Navigator.pushNamed(context, '/reports/top-products');
                       },
                     ),
+                    const SizedBox(height: 20),
+                    _buildReportCard(
+                      context: context,
+                      icon: Icons.analytics_outlined,
+                      iconColor: Colors.black87,
+                      iconBackgroundColor: const Color(0xFFF48FB1),
+                      borderColor: const Color(0xFFF48FB1),
+                      title: 'Resumen de Ventas',
+                      description: 'Ventas totales por periodo de tiempo',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/reports/sales-summary');
+                      },
+                    ),
+                    
                     const SizedBox(height: 20),
                     _buildReportCard(
                       context: context,
