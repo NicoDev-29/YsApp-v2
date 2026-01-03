@@ -316,7 +316,7 @@ class _DailySalesScreenState extends State<DailySalesScreen> {
                     }
 
                     final dailySalesList = dailySalesMap.values.toList()
-                      ..sort((a, b) => a.fecha.compareTo(b.fecha));
+                      ..sort((a, b) => b.fecha.compareTo(a.fecha)); // ← INVERTIDO: b antes que a
 
                     final totalPeriodo =
                         dailySalesList.fold(0.0, (sum, day) => sum + day.total);
@@ -514,7 +514,7 @@ class _DailySalesScreenState extends State<DailySalesScreen> {
             ? null
             : FloatingActionButton.extended(
                 onPressed: _generatePdf,
-                backgroundColor: AppColors.primary,
+                backgroundColor: const Color(0xFF80B2CB),
                 foregroundColor: Colors.white,
                 icon: const Icon(Icons.picture_as_pdf),
                 label: const Text('Exportar PDF', style: TextStyle(fontWeight: FontWeight.w600)),

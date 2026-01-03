@@ -266,12 +266,6 @@ class PdfBaseService {
       child: pw.Row(
         mainAxisSize: pw.MainAxisSize.min,
         children: [
-          pw.Icon(
-            pw.IconData(0xe878), // calendar icon
-            size: 14,
-            color: PdfColors.grey700,
-          ),
-          pw.SizedBox(width: 8),
           pw.Text(
             text,
             style: pw.TextStyle(
