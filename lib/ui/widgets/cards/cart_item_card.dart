@@ -64,7 +64,7 @@ class _CartItemCardState extends State<CartItemCard> {
     });
   }
 
-  // MÉTODO : Abrir modal de productos
+  // MÉTODO: Abrir modal de productos
   void _openAddProductsModal() {
     showModalBottomSheet(
       context: context,
@@ -330,7 +330,7 @@ class _CartItemCardState extends State<CartItemCard> {
             ],
           ),
           
-          // Productos usados en servicio CON BOTONES +/-
+          // Productos usados en servicio CON VALIDACIÓN DE STOCK
           if (widget.item.tipo == 'servicio' && widget.item.productosUsados.isNotEmpty) ...[
             const SizedBox(height: 12),
             const Divider(),
@@ -348,7 +348,7 @@ class _CartItemCardState extends State<CartItemCard> {
                 ),
                 Text(
                   '${widget.item.productosUsados.length} producto(s)',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primary,
@@ -357,125 +357,182 @@ class _CartItemCardState extends State<CartItemCard> {
               ],
             ),
             const SizedBox(height: 8),
-            ...widget.item.productosUsados.map((product) => Container(
-              margin: const EdgeInsets.only(bottom: 6),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Row(
-                children: [
-                  // Icono de producto
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Icon(
-                      Icons.inventory_2_outlined,
-                      size: 14,
-                      color: Colors.blue[700],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
+            
+            // ← LISTA DE PRODUCTOS CON VALIDACIÓN DE STOCK
+            ...widget.item.productosUsados.map((product) {
+              // ← OBTENER STOCK DISPONIBLE DEL PRODUCTO
+              return StreamBuilder<List<ProductModel>>(
+                stream: Provider.of<InventoryProvider>(context, listen: false)
+                    .getProducts(idSalon: widget.selectedSalon),
+                builder: (context, snapshot) {
+                  // Stock por defecto 999 si no se puede obtener
+                  int stockDisponible = 999;
                   
-                  // Nombre del producto
-                  Expanded(
-                    child: Text(
-                      product.nombre,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
+                  if (snapshot.hasData) {
+                    final productData = snapshot.data!.firstWhere(
+                      (p) => p.id == product.productoId,
+                      orElse: () => ProductModel(
+                        id: '',
+                        nombre: '',
+                        precio: 0,
+                        stock: 0,
+                        categoria: '',
+                        idSalon: '',
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  
-                  // Controles de cantidad
-                  Container(
+                    );
+                    if (productData.id.isNotEmpty) {
+                      stockDisponible = productData.stock;
+                    }
+                  }
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(6),
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[200]!),
                     ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Botón decrementar
-                        InkWell(
-                          onTap: () {
-                            if (product.cantidad > 1) {
-                              salesProvider.updateProductUsedQuantity(
-                                widget.item.id,
-                                product.productoId,
-                                product.cantidad - 1,
-                              );
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            child: const Icon(Icons.remove, size: 14),
-                          ),
-                        ),
-                        
-                        // Cantidad
+                        // Icono de producto
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            product.cantidad.toString(),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Icon(
+                            Icons.inventory_2_outlined,
+                            size: 14,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        
+                        // Nombre del producto con stock
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product.nombre,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              // ← Mostrar stock disponible
+                              Text(
+                                'Stock: $stockDisponible',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: stockDisponible < 5 ? Colors.orange : Colors.grey[600],
+                                  fontWeight: stockDisponible < 5 ? FontWeight.w600 : FontWeight.normal,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         
-                        // Botón incrementar
+                        // Controles de cantidad
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Botón decrementar
+                              InkWell(
+                                onTap: () {
+                                  if (product.cantidad > 1) {
+                                    salesProvider.decrementProductInService(
+                                      widget.item.id,
+                                      product.productoId,
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  child: const Icon(Icons.remove, size: 14),
+                                ),
+                              ),
+                              
+                              // Cantidad
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Text(
+                                  product.cantidad.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              
+                              // ← BOTÓN INCREMENTAR CORREGIDO CON VALIDACIÓN
+                              InkWell(
+                                onTap: () {
+                                  final success = salesProvider.incrementProductInService(
+                                    widget.item.id,
+                                    product.productoId,
+                                    stockDisponible, // ← VALIDAR STOCK
+                                  );
+                                  
+                                  // ← Mostrar error si no hay stock
+                                  if (!success && salesProvider.errorMessage != null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(salesProvider.errorMessage!),
+                                        duration: const Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                        backgroundColor: Colors.orange,
+                                      ),
+                                    );
+                                    salesProvider.clearError();
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  child: const Icon(Icons.add, size: 14),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(width: 8),
+                        
+                        // Botón eliminar
                         InkWell(
-                          onTap: () {
-                            salesProvider.updateProductUsedQuantity(
-                              widget.item.id,
-                              product.productoId,
-                              product.cantidad + 1,
-                            );
-                          },
+                          onTap: () => salesProvider.removeProductFromService(
+                            widget.item.id,
+                            product.productoId,
+                          ),
                           child: Container(
                             padding: const EdgeInsets.all(4),
-                            child: const Icon(Icons.add, size: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.red,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  
-                  const SizedBox(width: 8),
-                  
-                  // Botón eliminar
-                  InkWell(
-                    onTap: () => salesProvider.removeProductFromService(
-                      widget.item.id,
-                      product.productoId,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        size: 14,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )).toList(),
+                  );
+                },
+              );
+            }).toList(),
           ],
         ],
       ),

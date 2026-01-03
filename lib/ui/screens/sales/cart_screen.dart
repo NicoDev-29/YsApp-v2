@@ -153,7 +153,9 @@ class CartScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const CheckoutScreen(),
+                                builder: (context) => CheckoutScreen(
+                                  selectedSalon: selectedSalon, // ← CORREGIDO: Pasar salón
+                                ),
                               ),
                             );
                           },
@@ -327,20 +329,38 @@ class CartScreen extends StatelessWidget {
                           final product = products[index];
                           return GestureDetector(
                             onTap: () {
-                              salesProvider.addProductToService(
+                              // ← CORREGIDO: Pasar stock disponible
+                              final success = salesProvider.addProductToService(
                                 serviceItemId,
                                 product.id,
                                 product.nombre,
+                                product.stock, // ← NUEVO: pasar stock
                               );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${product.nombre} agregado',
+                              
+                              // ← Mostrar mensaje apropiado
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${product.nombre} agregado'),
+                                    duration: const Duration(seconds: 1),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: AppColors.activeGreen,
                                   ),
-                                  duration: const Duration(seconds: 1),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
+                                );
+                              } else {
+                                // ← Mostrar error de stock
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      salesProvider.errorMessage ?? 'Error al agregar producto',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                salesProvider.clearError();
+                              }
                             },
                             child: Container(
                               decoration: BoxDecoration(

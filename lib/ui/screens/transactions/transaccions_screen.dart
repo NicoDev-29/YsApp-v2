@@ -147,113 +147,134 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 },
               ),
               Expanded(
-                child: StreamBuilder<List<SaleModel>>(
-                  stream: salesProvider.getSales(
-                    salonId: isAdmin
-                        ? _selectedSalonFilter
-                        : authProvider.currentUser?.idSalon,
-                    userId: isAdmin ? null : authProvider.currentUser?.id,
-                    startDate: _startDate,
-                    endDate: _endDate,
-                  ),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
-                      );
+                child: Builder(
+                  builder: (context) {
+                    // Determinar parámetros de consulta basado en rol
+                    final String? querySalonId;
+                    final String? queryUserId;
+                    
+                    if (isAdmin) {
+                      // ADMIN: Ve todas las ventas del salón seleccionado
+                      querySalonId = _selectedSalonFilter;
+                      queryUserId = null; // ← NO filtrar por usuario
+                    } else {
+                      // PERSONAL: Ve solo sus propias ventas de su salón
+                      querySalonId = authProvider.currentUser?.idSalon;
+                      queryUserId = authProvider.currentUser?.id; // ← SÍ filtrar por usuario
                     }
 
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.error_outline,
-                                size: 64, color: Colors.red[400]),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Error al cargar transacciones',
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.grey[600]),
+                    // DEBUG: Descomentar estas líneas si necesitas debuggear
+                    // print('🔍 [TransactionsScreen] isAdmin: $isAdmin');
+                    // print('🔍 [TransactionsScreen] querySalonId: $querySalonId');
+                    // print('🔍 [TransactionsScreen] queryUserId: $queryUserId');
+
+                    return StreamBuilder<List<SaleModel>>(
+                      stream: salesProvider.getSales(
+                        salonId: querySalonId,
+                        userId: queryUserId,
+                        startDate: _startDate,
+                        endDate: _endDate,
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(color: AppColors.primary),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.error_outline,
+                                    size: 64, color: Colors.red[400]),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Error al cargar transacciones',
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.grey[600]),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  snapshot.error.toString(),
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.grey[500]),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              snapshot.error.toString(),
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey[500]),
-                              textAlign: TextAlign.center,
+                          );
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.receipt_long_outlined,
+                                    size: 64, color: Colors.grey[400]),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No hay transacciones',
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        final sales = snapshot.data!;
+                        final totalIngresos =
+                            sales.fold(0.0, (sum, sale) => sum + sale.total);
+
+                        final ventasPorDia = _groupSalesByDay(sales);
+                        final diasOrdenados = ventasPorDia.keys.toList()
+                          ..sort((a, b) => b.compareTo(a));
+
+                        return Column(
+                          children: [
+                            SummaryCard(
+                              totalIngresos: totalIngresos,
+                              cantidadTransacciones: sales.length,
+                            ),
+                            Expanded(
+                              child: ListView.builder(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                itemCount: diasOrdenados.length,
+                                itemBuilder: (context, index) {
+                                  final diaKey = diasOrdenados[index];
+                                  final ventasDelDia = ventasPorDia[diaKey]!;
+                                  final fecha = DateTime.parse(diaKey);
+
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      DateHeader(
+                                        date: fecha,
+                                        itemCount: ventasDelDia.length,
+                                      ),
+                                      ...ventasDelDia.map((sale) => TransactionCard(
+                                        sale: sale,
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TransactionDetailScreen(sale: sale),
+                                            ),
+                                          );
+                                        },
+                                      )),
+                                    ],
+                                  );
+                                },
+                              ),
                             ),
                           ],
-                        ),
-                      );
-                    }
-
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.receipt_long_outlined,
-                                size: 64, color: Colors.grey[400]),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No hay transacciones',
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.grey[600]),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    final sales = snapshot.data!;
-                    final totalIngresos =
-                        sales.fold(0.0, (sum, sale) => sum + sale.total);
-
-                    final ventasPorDia = _groupSalesByDay(sales);
-                    final diasOrdenados = ventasPorDia.keys.toList()
-                      ..sort((a, b) => b.compareTo(a));
-
-                    return Column(
-                      children: [
-                        SummaryCard(
-                          totalIngresos: totalIngresos,
-                          cantidadTransacciones: sales.length,
-                        ),
-                        Expanded(
-                          child: ListView.builder(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            itemCount: diasOrdenados.length,
-                            itemBuilder: (context, index) {
-                              final diaKey = diasOrdenados[index];
-                              final ventasDelDia = ventasPorDia[diaKey]!;
-                              final fecha = DateTime.parse(diaKey);
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  DateHeader(
-                                    date: fecha,
-                                    itemCount: ventasDelDia.length,
-                                  ),
-                                  ...ventasDelDia.map((sale) => TransactionCard(
-                                    sale: sale,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              TransactionDetailScreen(sale: sale),
-                                        ),
-                                      );
-                                    },
-                                  )),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     );
                   },
                 ),

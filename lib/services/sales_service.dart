@@ -148,9 +148,15 @@ class SalesService {
   }) {
     Query query = _firestore.collection('ventas');
 
+    // Filtrar por salón (siempre que exista)
     if (salonId != null && salonId.isNotEmpty) {
       query = query.where('idSalon', isEqualTo: salonId);
-    } else if (userId != null && userId.isNotEmpty) {
+    }
+
+    // Filtrar por usuario SOLO si se proporciona (para personal, no para admin)
+    // Admin pasa userId=null para ver TODAS las ventas del salón
+    // Personal pasa su userId para ver SOLO sus ventas
+    if (userId != null && userId.isNotEmpty) {
       query = query.where('idUsuario', isEqualTo: userId);
     }
 

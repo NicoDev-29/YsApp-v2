@@ -29,12 +29,12 @@ class SalesProvider extends ChangeNotifier {
     final currentUserId = authProvider.currentUser?.id;
 
     if (_lastUserId != null && _lastUserId != currentUserId) {
-      print(' [SalesProvider] Cambio de usuario detectado');
-      print(' [SalesProvider] Usuario anterior: $_lastUserId');
-      print(' [SalesProvider] Usuario actual: $currentUserId');
-      print(' [SalesProvider] Items en carrito: ${_cartItems.length}');
+      print('🔄 [SalesProvider] Cambio de usuario detectado');
+      print('👤 [SalesProvider] Usuario anterior: $_lastUserId');
+      print('👤 [SalesProvider] Usuario actual: $currentUserId');
+      print('🛒 [SalesProvider] Items en carrito: ${_cartItems.length}');
       clearCart();
-      print(' [SalesProvider]  Carrito limpiado');
+      print('✅ [SalesProvider] Carrito limpiado');
     }
 
     _lastUserId = currentUserId;
@@ -123,11 +123,12 @@ class SalesProvider extends ChangeNotifier {
     }
   }
 
-  // Agregar producto usado a un servicio
-  void addProductToService(
+  // ← CORREGIDO: Agregar producto usado a un servicio CON VALIDACIÓN DE STOCK
+  bool addProductToService(
     String serviceItemId,
     String productoId,
     String productoNombre,
+    int stockDisponible, // ← NUEVO parámetro
   ) {
     final index = _cartItems.indexWhere((item) => item.id == serviceItemId);
     if (index >= 0 && _cartItems[index].tipo == 'servicio') {
@@ -136,30 +137,66 @@ class SalesProvider extends ChangeNotifier {
           );
 
       if (existing >= 0) {
-        _cartItems[index].productosUsados[existing].cantidad++;
+        // Producto ya está en la lista, incrementar cantidad
+        final cantidadActual = _cartItems[index].productosUsados[existing].cantidad;
+        
+        if (cantidadActual < stockDisponible) {
+          _cartItems[index].productosUsados[existing].cantidad++;
+          notifyListeners();
+          return true; // ← Éxito
+        } else {
+          // ← Stock insuficiente
+          _errorMessage = 'Stock insuficiente de $productoNombre (disponible: $stockDisponible)';
+          notifyListeners();
+          return false; // ← Error
+        }
       } else {
-        _cartItems[index].productosUsados.add(ProductUsed(
-              productoId: productoId,
-              nombre: productoNombre,
-              cantidad: 1,
-            ));
+        // Producto nuevo, agregar con cantidad 1
+        if (stockDisponible > 0) {
+          _cartItems[index].productosUsados.add(ProductUsed(
+                productoId: productoId,
+                nombre: productoNombre,
+                cantidad: 1,
+              ));
+          notifyListeners();
+          return true; // ← Éxito
+        } else {
+          _errorMessage = 'Stock agotado de $productoNombre';
+          notifyListeners();
+          return false; // ← Error
+        }
       }
-      notifyListeners();
     }
+    return false;
   }
 
-  // Incrementar cantidad de producto en servicio
-  void incrementProductInService(String serviceItemId, String productoId) {
+  // ← CORREGIDO: Incrementar cantidad de producto en servicio CON VALIDACIÓN
+  bool incrementProductInService(
+    String serviceItemId,
+    String productoId,
+    int stockDisponible, // ← NUEVO parámetro
+  ) {
     final index = _cartItems.indexWhere((item) => item.id == serviceItemId);
     if (index >= 0 && _cartItems[index].tipo == 'servicio') {
       final productIndex = _cartItems[index].productosUsados.indexWhere(
             (p) => p.productoId == productoId,
           );
       if (productIndex >= 0) {
-        _cartItems[index].productosUsados[productIndex].cantidad++;
-        notifyListeners();
+        final cantidadActual = _cartItems[index].productosUsados[productIndex].cantidad;
+        final productoNombre = _cartItems[index].productosUsados[productIndex].nombre;
+        
+        if (cantidadActual < stockDisponible) {
+          _cartItems[index].productosUsados[productIndex].cantidad++;
+          notifyListeners();
+          return true; // ← Éxito
+        } else {
+          _errorMessage = 'Stock insuficiente de $productoNombre (disponible: $stockDisponible)';
+          notifyListeners();
+          return false; // ← Error
+        }
       }
     }
+    return false;
   }
 
   // Decrementar cantidad de producto en servicio
