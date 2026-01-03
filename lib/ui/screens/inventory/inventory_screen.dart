@@ -26,7 +26,7 @@ class _InventoryScreenState extends State<InventoryScreen>
   bool _isSearching = false;
   int currentIndex = 2;
 
-  String? _selectedSalonFilter = 'salon_principal';
+  String? _selectedSalonFilter; // ← CORREGIDO: Sin valor inicial hardcodeado
   String _tipoMovimientoFilter = 'todos';
 
   @override
@@ -41,6 +41,19 @@ class _InventoryScreenState extends State<InventoryScreen>
     });
     
     _searchController.addListener(() {
+      setState(() {});
+    });
+
+    // ← CORREGIDO: Inicializar filtro según el rol del usuario
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (!authProvider.isAdmin) {
+        // Personal: usar su salón asignado
+        _selectedSalonFilter = authProvider.currentUser?.idSalon;
+      } else {
+        // Admin: por defecto Salón Principal
+        _selectedSalonFilter = 'salon_principal';
+      }
       setState(() {});
     });
   }
@@ -558,6 +571,8 @@ class _InventoryScreenState extends State<InventoryScreen>
         }
 
         final movements = snapshot.data!.where((movement) {
+          // ← CORREGIDO: El filtro ya usa correctamente _selectedSalonFilter
+          // que ahora se inicializa según el rol del usuario
           bool matchesSalon = _selectedSalonFilter == null ||
               movement.desde == _selectedSalonFilter ||
               movement.hacia == _selectedSalonFilter ||

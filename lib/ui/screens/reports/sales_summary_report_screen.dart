@@ -559,7 +559,6 @@ class _SalesSummaryScreenState extends State<SalesSummaryScreen> {
           const SnackBar(
             content: Text('PDF generado exitosamente'),
             backgroundColor: Colors.black87,
-            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -569,7 +568,6 @@ class _SalesSummaryScreenState extends State<SalesSummaryScreen> {
           SnackBar(
             content: Text('Error al generar PDF: $e'),
             backgroundColor: AppColors.inactiveRed,
-            behavior: SnackBarBehavior.floating,
           ),
         );
       }

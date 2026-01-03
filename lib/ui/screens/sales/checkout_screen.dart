@@ -6,7 +6,12 @@ import 'package:ysa_app/ui/widgets/widgets_exports.dart';
 
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({Key? key}) : super(key: key);
+  final String? selectedSalon; // ← AGREGADO: Recibir salón seleccionado
+
+  const CheckoutScreen({
+    Key? key,
+    this.selectedSalon, // ← AGREGADO
+  }) : super(key: key);
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -324,10 +329,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final salesProvider = Provider.of<SalesProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
+    // ← CORREGIDO: Usar selectedSalon si existe, sino el del usuario
+    final salonId = widget.selectedSalon ?? authProvider.currentUser!.idSalon;
+
     final success = await salesProvider.completeSale(
       userId: authProvider.currentUser!.id,
       userName: authProvider.currentUser!.nombreUsuario,
-      salonId: authProvider.currentUser!.idSalon,
+      salonId: salonId, // ← CORREGIDO: Usar el salón correcto
       metodoPago: _selectedPaymentMethod,
     );
 

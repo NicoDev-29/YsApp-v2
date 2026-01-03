@@ -517,7 +517,6 @@ class _TopProductsScreenState extends State<TopProductsScreen> {
           const SnackBar(
             content: Text('PDF generado exitosamente'),
             backgroundColor: Colors.black87,
-            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -527,7 +526,6 @@ class _TopProductsScreenState extends State<TopProductsScreen> {
           SnackBar(
             content: Text('Error al generar PDF: $e'),
             backgroundColor: AppColors.inactiveRed,
-            behavior: SnackBarBehavior.floating,
           ),
         );
       }

@@ -40,6 +40,7 @@ class _AddProductsToServiceModalState extends State<AddProductsToServiceModal> {
     });
   }
 
+  // ← CORREGIDO: Validar stock al agregar productos
   void _addSelectedProducts(List<ProductModel> allProducts) {
     if (_selectedProductIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -54,27 +55,59 @@ class _AddProductsToServiceModalState extends State<AddProductsToServiceModal> {
     }
 
     final salesProvider = Provider.of<SalesProvider>(context, listen: false);
+    int successCount = 0;
+    int failCount = 0;
+    String? lastError;
 
     for (final productId in _selectedProductIds) {
       final product = allProducts.firstWhere((p) => p.id == productId);
-      salesProvider.addProductToService(
+      
+      // ← VALIDAR STOCK AL AGREGAR
+      final success = salesProvider.addProductToService(
         widget.serviceItemId,
         productId,
         product.nombre,
+        product.stock, // ← PASAR STOCK DISPONIBLE
       );
+      
+      if (success) {
+        successCount++;
+      } else {
+        failCount++;
+        lastError = salesProvider.errorMessage;
+      }
     }
 
     Navigator.pop(context);
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${_selectedProductIds.length} producto(s) agregado(s)'),
-        backgroundColor: AppColors.activeGreen,
-        duration: const Duration(seconds: 1), 
-        behavior: SnackBarBehavior.floating, 
-        margin: const EdgeInsets.only(bottom: 10, left: 16, right: 16),
-      ),
-    );
+    // ← Mostrar resultado con feedback apropiado
+    if (successCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            failCount > 0
+                ? '$successCount agregado(s), $failCount sin stock'
+                : '$successCount producto(s) agregado(s)',
+          ),
+          backgroundColor: failCount > 0 ? Colors.orange : AppColors.activeGreen,
+          duration: const Duration(seconds: 2), 
+          behavior: SnackBarBehavior.floating, 
+          margin: const EdgeInsets.only(bottom: 10, left: 16, right: 16),
+        ),
+      );
+    } else if (failCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(lastError ?? 'No se pudieron agregar los productos'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 10, left: 16, right: 16),
+        ),
+      );
+    }
+    
+    salesProvider.clearError();
   }
 
   List<ProductModel> _filterProducts(List<ProductModel> products) {
