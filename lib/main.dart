@@ -65,6 +65,7 @@ class MyApp extends StatelessWidget {
         '/reports/sales-summary': (context) => const SalesSummaryScreen(),
         '/reports/top-products': (context) => const TopProductsScreen(),
         '/reports/daily-sales': (context) => const DailySalesScreen(),
+        '/reports/top-services': (context) => const TopServicesScreen(),
       },
     );
   }

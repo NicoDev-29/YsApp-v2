@@ -42,6 +42,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
+                    // 1. Productos por agotarse
                     _buildReportCard(
                       context: context,
                       icon: Icons.warning_amber_rounded,
@@ -55,6 +56,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
+                    
+                    // 2. Productos más vendidos
                     _buildReportCard(
                       context: context,
                       icon: Icons.lightbulb_outline_rounded,
@@ -68,6 +71,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
+                    
+                    // 3. Servicios más vendidos ← NUEVA CARD
+                    _buildReportCard(
+                      context: context,
+                      icon: Icons.spa_outlined,
+                      iconColor: Colors.black87,
+                      iconBackgroundColor: const Color(0xFF81C784),
+                      borderColor: const Color(0xFF81C784),
+                      title: 'Servicios Más Vendidos',
+                      description: 'Identifica los servicios más solicitados por tus clientes',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/reports/top-services');
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    // 4. Resumen de ventas
                     _buildReportCard(
                       context: context,
                       icon: Icons.analytics_outlined,
@@ -80,8 +100,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         Navigator.pushNamed(context, '/reports/sales-summary');
                       },
                     ),
-                    
                     const SizedBox(height: 20),
+                    
+                    // 5. Ventas diarias por salón
                     _buildReportCard(
                       context: context,
                       icon: Icons.calendar_today_rounded,
@@ -123,7 +144,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: borderColor, width: 2),
           boxShadow: [
-            // Sombra para efecto elevado
             BoxShadow(
               color: borderColor.withOpacity(0.15),
               blurRadius: 12,
@@ -138,7 +158,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ),
         child: Row(
           children: [
-    
             Container(
               padding: const EdgeInsets.all(10), 
               decoration: BoxDecoration(
@@ -153,7 +172,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
             const SizedBox(width: 16),
             
-            // Texto
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,7 +198,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
             const SizedBox(width: 10),
             
-            // Flecha
             Icon(
               Icons.arrow_forward_ios_rounded,
               color: Colors.grey[400],
