@@ -22,7 +22,6 @@ final List<MenuOption> menuOptions = [
     label: 'Vender', 
     icon: Icons.point_of_sale, 
     routeName: '/sales',
-    
   ),
   MenuOption(
     index: 1, 
@@ -45,6 +44,13 @@ final List<MenuOption> menuOptions = [
   ),
   MenuOption(
     index: 4, 
+    label: 'Notificaciones', 
+    icon: Icons.notifications_outlined, 
+    routeName: '/notifications',
+    allowedRoles: const ['admin'],
+  ),
+  MenuOption(
+    index: 5, 
     label: 'Reportes', 
     icon: Icons.bar_chart, 
     routeName: '/reports', 

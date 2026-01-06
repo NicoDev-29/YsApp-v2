@@ -4,3 +4,4 @@ export 'inventory_service.dart';
 export 'sales_service.dart';
 export 'pdf/pdf_base_service.dart';
 export 'pdf/pdf_service.dart';
+export 'notification_service.dart';

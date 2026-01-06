@@ -14,7 +14,7 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  int currentIndex = 4;
+  int currentIndex = 5;
 
   @override
   Widget build(BuildContext context) {
