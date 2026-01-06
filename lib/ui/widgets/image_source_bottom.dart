@@ -64,8 +64,8 @@ class ImageSourceHelper {
 
   static Future<File?> pickImage({
     required ImageSource source,
-    double maxWidth = 800,      // ✅ Cambiado de int a double
-    double maxHeight = 800,     // ✅ Cambiado de int a double
+    double maxWidth = 800,     
+    double maxHeight = 800,    
     int imageQuality = 85,
   }) async {
     try {

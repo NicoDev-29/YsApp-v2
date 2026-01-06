@@ -7,7 +7,7 @@ class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
-  
+
   User? get currentFirebaseUser => _auth.currentUser;
 
   // LOGIN: Autentica con email y contraseña
@@ -32,9 +32,11 @@ class AuthService {
     );
 
     try {
-      final FirebaseAuth secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
-      
-      final UserCredential userCredential = await secondaryAuth.createUserWithEmailAndPassword(
+      final FirebaseAuth secondaryAuth =
+          FirebaseAuth.instanceFor(app: secondaryApp);
+
+      final UserCredential userCredential =
+          await secondaryAuth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
@@ -66,5 +68,23 @@ class AuthService {
 
   Future<void> updateUserData(String uid, Map<String, dynamic> data) async {
     await _firestore.collection('usuarios').doc(uid).update(data);
+  }
+
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      // Manejo de errores específicos
+      String message = 'Ocurrió un error inesperado';
+      if (e.code == 'user-not-found') {
+        message = 'No existe un usuario con este correo electrónico.';
+      } else if (e.code == 'invalid-email') {
+        message = 'El formato del correo no es válido.';
+      }
+      throw message;
+    } catch (e) {
+      throw "Error de conexión. Verifica tu internet e intenta de nuevo.";
+    }
   }
 }
