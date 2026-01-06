@@ -5,3 +5,4 @@ export 'sales_service.dart';
 export 'pdf/pdf_base_service.dart';
 export 'pdf/pdf_service.dart';
 export 'notification_service.dart';
+export 'connectivity_service.dart';
