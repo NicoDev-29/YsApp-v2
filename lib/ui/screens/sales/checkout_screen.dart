@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ysa_app/providers/providers_exports.dart';
+import 'package:ysa_app/services/services_exports.dart'; 
 import 'package:ysa_app/themes/theme.dart';
 import 'package:ysa_app/ui/widgets/widgets_exports.dart';
 
 
 class CheckoutScreen extends StatefulWidget {
-  final String? selectedSalon; // ← AGREGADO: Recibir salón seleccionado
+  final String? selectedSalon; 
 
   const CheckoutScreen({
     Key? key,
-    this.selectedSalon, // ← AGREGADO
+    this.selectedSalon, 
   }) : super(key: key);
 
   @override
@@ -210,8 +211,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 value: 'yape',
               ),
 
-              
-
               const SizedBox(height: 32),
 
               // Botón guardar venta
@@ -247,7 +246,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
               
-              // ← AGREGADO: Espacio adicional al final
               const SizedBox(height: 16),
             ],
           ),
@@ -320,8 +318,65 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // Completar venta
+  // Completar venta CON VALIDACIÓN DE INTERNET ← MODIFICADO
   Future<void> _completeSale(BuildContext context) async {
+    // ✅ PASO 1: VALIDAR CONEXIÓN A INTERNET PRIMERO
+    final hasInternet = await ConnectivityService.hasInternetConnection();
+    
+    if (!hasInternet) {
+      if (!mounted) return;
+      
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.wifi_off,
+                color: Colors.orange[700],
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Sin conexión',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            'No hay conexión a internet.\n\n'
+            'Por favor, verifica tu conexión WiFi antes de registrar la venta.',
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+              ),
+              child: const Text(
+                'Entendido',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      return; // ← Detener aquí si no hay internet
+    }
+
+    // ✅ PASO 2: Continuar con la venta si hay conexión
     setState(() {
       _isProcessing = true;
     });
@@ -329,13 +384,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final salesProvider = Provider.of<SalesProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // ← CORREGIDO: Usar selectedSalon si existe, sino el del usuario
     final salonId = widget.selectedSalon ?? authProvider.currentUser!.idSalon;
 
     final success = await salesProvider.completeSale(
       userId: authProvider.currentUser!.id,
       userName: authProvider.currentUser!.nombreUsuario,
-      salonId: salonId, // ← CORREGIDO: Usar el salón correcto
+      salonId: salonId,
       metodoPago: _selectedPaymentMethod,
     );
 
