@@ -39,42 +39,42 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-  context.read<AuthProvider>().clearError();
+    context.read<AuthProvider>().clearError();
 
-  if (!_formKey.currentState!.validate()) {
-    return;
-  }
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-  final authProvider = context.read<AuthProvider>();
-  
-  final success = await authProvider.signInWithEmailPassword(
-    _emailController.text.trim(),
-    _passwordController.text,
-  );
+    final authProvider = context.read<AuthProvider>();
 
-  if (success) {
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        content: Text('¡Inicio de sesión exitoso!'),
-        backgroundColor: AppColors.activeGreen,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
+    final success = await authProvider.signInWithEmailPassword(
+      _emailController.text.trim(),
+      _passwordController.text,
     );
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/');
-  } else {
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        content: Text(authProvider.errorMessage ?? 'Error al iniciar sesión'),
-        backgroundColor: AppColors.inactiveRed,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+
+    if (success) {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text('¡Inicio de sesión exitoso!'),
+          backgroundColor: AppColors.activeGreen,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/');
+    } else {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Error al iniciar sesión'),
+          backgroundColor: AppColors.inactiveRed,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -197,9 +197,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        _showMessage(
-                          'Contacta al administrador para recuperar tu contraseña',
-                          isError: false,
+                        showDialog(
+                          context: context,
+                          builder: (context) => const ForgotPasswordDialog(),
                         );
                       },
                       child: const Text(
