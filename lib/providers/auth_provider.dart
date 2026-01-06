@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 import 'sales_provider.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -33,7 +35,7 @@ class AuthProvider extends ChangeNotifier {
       if (user != null) {
         // IMPORTANTE: Esperar a que _loadUserData termine completamente
         await _loadUserData(user.uid);
-        
+
         // Solo iniciar el listener si el usuario fue cargado exitosamente
         if (_currentUser != null) {
           _startUserStatusListener(user.uid);
@@ -99,13 +101,34 @@ class AuthProvider extends ChangeNotifier {
       if (userCredential.user != null) {
         // Esperar un poco más para asegurar que _loadUserData termine
         await Future.delayed(const Duration(milliseconds: 800));
-        
+
         // Verificar si el usuario fue cargado exitosamente
         if (_currentUser == null) {
           _isLoading = false;
           // El error ya fue establecido en _loadUserData
           notifyListeners();
           return false;
+        }
+
+        // ✅ GUARDAR TOKEN FCM DESPUÉS DE QUE EL USUARIO ESTÉ CARGADO
+        // Solo para admins, pero puedes quitar el if para guardarlo siempre
+        if (_currentUser?.idRol == 'admin') {
+          try {
+            final token = await FirebaseMessaging.instance.getToken();
+            if (token != null) {
+              await NotificationService().saveTokenToFirestore(
+                userCredential.user!.uid,
+                token,
+              );
+              print(
+                  '✅ Token FCM guardado para admin: ${token.substring(0, 20)}...');
+            } else {
+              print('⚠️ No se pudo obtener token FCM');
+            }
+          } catch (e) {
+            print('❌ Error guardando token FCM: $e');
+            // No bloquear el login si falla el token
+          }
         }
 
         _isLoading = false;
@@ -137,7 +160,8 @@ class AuthProvider extends ChangeNotifier {
         final isActive = userData['activo'] ?? true;
 
         if (!isActive) {
-          _errorMessage = 'Tu cuenta ha sido desactivada. Contacta al administrador';
+          _errorMessage =
+              'Tu cuenta ha sido desactivada. Contacta al administrador';
           await _authService.signOut();
           _currentUser = null;
           _isLoading = false;
@@ -155,6 +179,7 @@ class AuthProvider extends ChangeNotifier {
           createdAt: userData['createdAt'] != null
               ? (userData['createdAt'] as Timestamp).toDate()
               : null,
+          fcmToken: userData['fcmToken'],
         );
         _isLoading = false;
         notifyListeners();
@@ -207,7 +232,8 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      final String uid = await _authService.createUserWithEmailPasswordSecondary(
+      final String uid =
+          await _authService.createUserWithEmailPasswordSecondary(
         email,
         password,
       );
@@ -240,26 +266,27 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // ========================================
-  // 🔥 MÉTODO MODIFICADO CON DEBUGGING
-  // ========================================
   Future<void> signOut([BuildContext? context]) async {
     print('🔥 [AuthProvider] signOut() llamado');
-    print('🔥 [AuthProvider] Context recibido: ${context != null ? "SÍ" : "NO"}');
-    
+    print(
+        '🔥 [AuthProvider] Context recibido: ${context != null ? "SÍ" : "NO"}');
+
     _cancelUserStatusListener();
-    
+
     // 🔥 LIMPIAR CARRITO SI SE PASA CONTEXT
     if (context != null) {
       print('🔥 [AuthProvider] Intentando limpiar carrito...');
       try {
-        final salesProvider = Provider.of<SalesProvider>(context, listen: false);
+        final salesProvider =
+            Provider.of<SalesProvider>(context, listen: false);
         print('🔥 [AuthProvider] SalesProvider encontrado');
-        print('🔥 [AuthProvider] Items en carrito ANTES: ${salesProvider.cartItemCount}');
-        
+        print(
+            '🔥 [AuthProvider] Items en carrito ANTES: ${salesProvider.cartItemCount}');
+
         salesProvider.clearCart();
-        
-        print('🔥 [AuthProvider] Items en carrito DESPUÉS: ${salesProvider.cartItemCount}');
+
+        print(
+            '🔥 [AuthProvider] Items en carrito DESPUÉS: ${salesProvider.cartItemCount}');
         print('🔥 [AuthProvider] ✅ Carrito limpiado exitosamente');
       } catch (e) {
         print('🔥 [AuthProvider] ❌ ERROR al limpiar carrito: $e');
@@ -268,7 +295,7 @@ class AuthProvider extends ChangeNotifier {
     } else {
       print('🔥 [AuthProvider] ⚠️ NO se limpiará el carrito (context = null)');
     }
-    
+
     print('🔥 [AuthProvider] Cerrando sesión de Firebase...');
     await _authService.signOut();
     _currentUser = null;

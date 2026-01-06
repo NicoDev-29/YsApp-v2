@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:ysa_app/providers/auth_provider.dart';
 import 'package:ysa_app/themes/theme.dart';
 import 'package:ysa_app/models/models_exports.dart';
+import 'package:ysa_app/ui/screens/screens_exports.dart';
+import 'package:ysa_app/ui/widgets/widgets_exports.dart';
+
 
 class CustomSideMenu extends StatelessWidget {
   final String userName;
@@ -125,13 +128,22 @@ class CustomSideMenu extends StatelessWidget {
                         title: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              item.label,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: selected ? Colors.white : Colors.black87,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  item.label,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: selected ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                                // BADGE SOLO EN NOTIFICACIONES
+                                if (item.label == 'Notificaciones') ...[
+                                  const SizedBox(width: 8),
+                                  const NotificationBadge(),
+                                ],
+                              ],
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -168,8 +180,13 @@ class CustomSideMenu extends StatelessWidget {
                 ),
                 child: InkWell(
                   onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/profile');
+                    Navigator.pop(context); // Cerrar drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileScreen(),
+                      ),
+                    );
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
@@ -242,6 +259,8 @@ class CustomSideMenu extends StatelessWidget {
         return 'Productos y servicios';
       case 'Usuarios':
         return 'Gestión de usuarios';
+      case 'Notificaciones':
+        return 'Alertas de stock bajo';
       case 'Reportes':
         return 'Análisis del negocio';
       default:

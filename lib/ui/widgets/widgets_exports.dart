@@ -47,6 +47,7 @@ export 'transactions/period_filter_tabs.dart';
 export 'transactions/summary_card.dart';
 export 'transactions/transaccion_card.dart';
 export 'date_header.dart';
+export 'menu/notification_badget.dart';
 
 
 
