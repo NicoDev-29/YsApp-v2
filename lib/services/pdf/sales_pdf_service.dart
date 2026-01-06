@@ -33,6 +33,19 @@ class ProductSalesData {
   });
 }
 
+// ← CLASE PARA SERVICIOS
+class ServiceSalesData {
+  final String nombre;
+  final int cantidadRealizada;
+  final double totalGenerado;
+
+  ServiceSalesData({
+    required this.nombre,
+    required this.cantidadRealizada,
+    required this.totalGenerado,
+  });
+}
+
 class DailySales {
   final DateTime fecha;
   final int cantidadVentas;
@@ -353,6 +366,319 @@ class SalesPdfService {
     await PdfBaseService.savePdf(
       pdf,
       'top_productos_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    );
+  }
+
+  // ============================================================
+  // REPORTE 2B: TOP SERVICIOS MÁS SOLICITADOS ← CORREGIDO
+  // ============================================================
+  static Future<void> generateTopServicesReport(
+    List<SaleModel> sales,
+    String salonFilter,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    final pdf = pw.Document();
+
+    String salonTitle;
+    if (salonFilter == 'todos') {
+      salonTitle = 'Todos los salones';
+    } else if (salonFilter == 'salon_principal') {
+      salonTitle = 'Salón Principal';
+    } else {
+      salonTitle = 'Salón Secundario';
+    }
+
+    // Procesar servicios vendidos
+    final serviceSalesMap = <String, ServiceSalesData>{};
+    for (var sale in sales) {
+      for (var item in sale.items) {
+        if (item.tipo == 'servicio') {
+          final key = item.nombre;
+          if (serviceSalesMap.containsKey(key)) {
+            final current = serviceSalesMap[key]!;
+            serviceSalesMap[key] = ServiceSalesData(
+              nombre: item.nombre,
+              cantidadRealizada: current.cantidadRealizada + 1,
+              totalGenerado: current.totalGenerado + item.precioFinal,
+            );
+          } else {
+            serviceSalesMap[key] = ServiceSalesData(
+              nombre: item.nombre,
+              cantidadRealizada: 1,
+              totalGenerado: item.precioFinal,
+            );
+          }
+        }
+      }
+    }
+
+    final topServices = serviceSalesMap.values.toList()
+      ..sort((a, b) => b.cantidadRealizada.compareTo(a.cantidadRealizada));
+    final top20 = topServices.take(20).toList();
+
+    final totalRealizados = top20.fold<int>(0, (sum, s) => sum + s.cantidadRealizada);
+    final totalGenerado = top20.fold<double>(0, (sum, s) => sum + s.totalGenerado);
+    final promedioServicio = totalRealizados > 0 ? totalGenerado / totalRealizados : 0.0;
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Header
+              PdfBaseService.buildHeader(
+                title: 'Servicios Más Solicitados',
+                subtitle: 'Ranking de los 20 servicios con mayor demanda',
+                salonTag: salonTitle,
+              ),
+
+              pw.SizedBox(height: 12),
+
+              // Período
+              PdfBaseService.buildInfoBox(
+                'Período: ${PdfBaseService.dateFormat.format(startDate)} - ${PdfBaseService.dateFormat.format(endDate)}',
+              ),
+
+              pw.SizedBox(height: 16),
+
+              // Cajas de resumen (MEJORADAS - sin isWhite)
+              PdfBaseService.buildSummaryBoxes([
+                SummaryItem(
+                  label: 'Servicios Realizados',
+                  value: '$totalRealizados',
+                ),
+                SummaryItem(
+                  label: 'Ingresos Totales',
+                  value: PdfBaseService.currencyFormat.format(totalGenerado),
+                ),
+                SummaryItem(
+                  label: 'Ticket Promedio',
+                  value: PdfBaseService.currencyFormat.format(promedioServicio),
+                ),
+              ]),
+
+              pw.SizedBox(height: 20),
+
+              // Título explicativo
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'RANKING DE SERVICIOS',
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.green900,
+                    ),
+                  ),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.green100,
+                      borderRadius: pw.BorderRadius.circular(4),
+                      border: pw.Border.all(color: PdfColors.green700),
+                    ),
+                    child: pw.Text(
+                      'Top ${top20.length} servicios',
+                      style: pw.TextStyle(
+                        fontSize: 9,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.green900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              pw.SizedBox(height: 10),
+
+              // Tabla (CORREGIDA - sin isWhite)
+              pw.Table(
+                border: pw.TableBorder.all(
+                  color: PdfColors.grey400,
+                  width: 1,
+                ),
+                columnWidths: {
+                  0: const pw.FixedColumnWidth(45),
+                  1: const pw.FlexColumnWidth(4),
+                  2: const pw.FlexColumnWidth(2),
+                  3: const pw.FlexColumnWidth(2.5),
+                  4: const pw.FlexColumnWidth(1.5),
+                },
+                children: [
+                  // Header con texto blanco manualmente
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.green700),
+                    children: [
+                      _buildWhiteTableCell('#', isHeader: true, isCenter: true),
+                      _buildWhiteTableCell('SERVICIO', isHeader: true),
+                      _buildWhiteTableCell('VECES REALIZADO', isHeader: true, isCenter: true),
+                      _buildWhiteTableCell('TOTAL GENERADO', isHeader: true),
+                      _buildWhiteTableCell('% DEL TOTAL', isHeader: true, isCenter: true),
+                    ],
+                  ),
+                  
+                  // Filas
+                  ...top20.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final service = entry.value;
+                    final porcentaje = (service.totalGenerado / totalGenerado * 100).toStringAsFixed(1);
+                    final isTopThree = index < 3;
+
+                    return pw.TableRow(
+                      decoration: pw.BoxDecoration(
+                        color: isTopThree 
+                            ? PdfColors.amber50 
+                            : index.isEven 
+                                ? PdfColors.grey100 
+                                : PdfColors.white,
+                      ),
+                      children: [
+                        PdfBaseService.buildTableCell(
+                          isTopThree ? ' ${index + 1}' : '${index + 1}',
+                          isCenter: true,
+                          isBold: isTopThree,
+                        ),
+                        PdfBaseService.buildTableCell(
+                          service.nombre,
+                          isBold: isTopThree,
+                        ),
+                        PdfBaseService.buildTableCell(
+                          '${service.cantidadRealizada}',
+                          isCenter: true,
+                          isBold: true,
+                        ),
+                        PdfBaseService.buildTableCell(
+                          PdfBaseService.currencyFormat.format(service.totalGenerado),
+                          isBold: isTopThree,
+                        ),
+                        PdfBaseService.buildTableCell(
+                          '$porcentaje%',
+                          isCenter: true,
+                        ),
+                      ],
+                    );
+                  }).toList(),
+
+                  // Fila de totales con texto blanco manualmente
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.green700),
+                    children: [
+                      _buildWhiteTableCell(''),
+                      _buildWhiteTableCell('TOTAL', isBold: true),
+                      _buildWhiteTableCell('$totalRealizados', isCenter: true, isBold: true),
+                      _buildWhiteTableCell(
+                        PdfBaseService.currencyFormat.format(totalGenerado),
+                        isBold: true,
+                      ),
+                      _buildWhiteTableCell('100%', isCenter: true, isBold: true),
+                    ],
+                  ),
+                ],
+              ),
+
+              pw.SizedBox(height: 16),
+
+              // Nota informativa
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.blue50,
+                  borderRadius: pw.BorderRadius.circular(6),
+                  border: pw.Border.all(color: PdfColors.blue300),
+                ),
+                child: pw.Row(
+                  children: [
+                    pw.Container(
+                      width: 4,
+                      height: 30,
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColors.blue700,
+                        borderRadius: pw.BorderRadius.all(pw.Radius.circular(2)),
+                      ),
+                    ),
+                    pw.SizedBox(width: 10),
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            'Nota importante',
+                            style: pw.TextStyle(
+                              fontSize: 9,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.blue900,
+                            ),
+                          ),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                            'Los servicios más solicitados te ayudan a identificar qué tratamientos prefieren tus clientes. '
+                            'Considera mantener siempre disponibles los productos necesarios para los servicios del Top 5.',
+                            style: pw.TextStyle(
+                              fontSize: 8,
+                              color: PdfColors.grey800,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              pw.Spacer(),
+
+              // Footer
+              pw.Divider(color: PdfColors.grey400),
+              pw.SizedBox(height: 6),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'Reporte generado: ${PdfBaseService.dateFormat.format(DateTime.now())} ${DateFormat('HH:mm').format(DateTime.now())}',
+                    style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+                  ),
+                  pw.Text(
+                    'YsApp - Sistema de Gestión',
+                    style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    await PdfBaseService.savePdf(
+      pdf,
+      'servicios_mas_solicitados_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    );
+  }
+
+  // Helper para celdas con texto blanco (fondo verde)
+  static pw.Widget _buildWhiteTableCell(
+    String text, {
+    bool isHeader = false,
+    bool isBold = false,
+    bool isCenter = false,
+  }) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontSize: isHeader ? 9 : 8.5,
+          fontWeight: (isHeader || isBold) ? pw.FontWeight.bold : pw.FontWeight.normal,
+          color: PdfColors.white, // ← BLANCO para fondo verde
+        ),
+        textAlign: isCenter ? pw.TextAlign.center : pw.TextAlign.left,
+      ),
     );
   }
 
