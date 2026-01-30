@@ -33,7 +33,6 @@ class AuthProvider extends ChangeNotifier {
   void _initAuthListener() {
     _authService.authStateChanges.listen((user) async {
       if (user != null) {
-        // IMPORTANTE: Esperar a que _loadUserData termine completamente
         await _loadUserData(user.uid);
 
         // Solo iniciar el listener si el usuario fue cargado exitosamente
@@ -110,8 +109,7 @@ class AuthProvider extends ChangeNotifier {
           return false;
         }
 
-        // ✅ GUARDAR TOKEN FCM DESPUÉS DE QUE EL USUARIO ESTÉ CARGADO
-        // Solo para admins, pero puedes quitar el if para guardarlo siempre
+        // GUARDAR TOKEN FCM DESPUÉS DE QUE EL USUARIO ESTÉ CARGADO
         if (_currentUser?.idRol == 'admin') {
           try {
             final token = await FirebaseMessaging.instance.getToken();

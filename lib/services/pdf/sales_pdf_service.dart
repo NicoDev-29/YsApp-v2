@@ -370,7 +370,7 @@ class SalesPdfService {
   }
 
   // ============================================================
-  // REPORTE 2B: TOP SERVICIOS MÁS SOLICITADOS ← CORREGIDO
+  // REPORTE 2B: TOP SERVICIOS MÁS SOLICITADOS
   // ============================================================
   static Future<void> generateTopServicesReport(
     List<SaleModel> sales,
@@ -445,7 +445,7 @@ class SalesPdfService {
 
               pw.SizedBox(height: 16),
 
-              // Cajas de resumen (MEJORADAS - sin isWhite)
+              // Cajas de resumen
               PdfBaseService.buildSummaryBoxes([
                 SummaryItem(
                   label: 'Servicios Realizados',
@@ -496,7 +496,7 @@ class SalesPdfService {
 
               pw.SizedBox(height: 10),
 
-              // Tabla (CORREGIDA - sin isWhite)
+              // Tabla
               pw.Table(
                 border: pw.TableBorder.all(
                   color: PdfColors.grey400,
@@ -675,7 +675,7 @@ class SalesPdfService {
         style: pw.TextStyle(
           fontSize: isHeader ? 9 : 8.5,
           fontWeight: (isHeader || isBold) ? pw.FontWeight.bold : pw.FontWeight.normal,
-          color: PdfColors.white, // ← BLANCO para fondo verde
+          color: PdfColors.white,
         ),
         textAlign: isCenter ? pw.TextAlign.center : pw.TextAlign.left,
       ),
@@ -850,6 +850,255 @@ class SalesPdfService {
     await PdfBaseService.savePdf(
       pdf,
       'ventas_diarias_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    );
+  }
+
+  // ============================================================
+  // REPORTE UNIFICADO: RESUMEN COMPLETO DE VENTAS
+  // (Ventas diarias + métodos de pago - SIN desglose por trabajadora)
+  // ============================================================
+  static Future<void> generateUnifiedSalesReport(
+    List<SaleModel> sales,
+    String salonFilter,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    final pdf = pw.Document();
+
+    // Determinar título del salón
+    String salonTitle;
+    if (salonFilter == 'todos') {
+      salonTitle = 'Todos los salones';
+    } else if (salonFilter == 'salon_principal') {
+      salonTitle = 'Salón Principal';
+    } else {
+      salonTitle = 'Salón Secundario';
+    }
+
+    // Calcular totales
+    final totalSales = sales.fold(0.0, (sum, sale) => sum + sale.total);
+    final totalTransactions = sales.length;
+
+    // Calcular por método de pago
+    final totalYape = sales
+        .where((sale) => sale.metodoPago.toLowerCase() == 'yape')
+        .fold(0.0, (sum, sale) => sum + sale.total);
+    final totalEfectivo = sales
+        .where((sale) => sale.metodoPago.toLowerCase() == 'efectivo')
+        .fold(0.0, (sum, sale) => sum + sale.total);
+    final countYape = sales.where((sale) => sale.metodoPago.toLowerCase() == 'yape').length;
+    final countEfectivo = sales.where((sale) => sale.metodoPago.toLowerCase() == 'efectivo').length;
+
+    // Agrupar por día
+    final dailySalesMap = <String, DailySales>{};
+    for (var sale in sales) {
+      final dateKey = DateFormat('yyyy-MM-dd').format(sale.fecha);
+      if (dailySalesMap.containsKey(dateKey)) {
+        final current = dailySalesMap[dateKey]!;
+        dailySalesMap[dateKey] = DailySales(
+          fecha: sale.fecha,
+          cantidadVentas: current.cantidadVentas + 1,
+          total: current.total + sale.total,
+        );
+      } else {
+        dailySalesMap[dateKey] = DailySales(
+          fecha: sale.fecha,
+          cantidadVentas: 1,
+          total: sale.total,
+        );
+      }
+    }
+    final dailySalesList = dailySalesMap.values.toList()
+      ..sort((a, b) => a.fecha.compareTo(b.fecha));
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (context) => [
+          // Header
+          PdfBaseService.buildHeader(
+            title: 'Resumen Completo de Ventas',
+            salonTag: salonTitle,
+          ),
+
+          pw.SizedBox(height: 12),
+
+          // Período
+          PdfBaseService.buildInfoBox(
+            'Período: ${PdfBaseService.dateFormat.format(startDate)} - ${PdfBaseService.dateFormat.format(endDate)}',
+          ),
+
+          pw.SizedBox(height: 16),
+
+          // TOTAL CON DESGLOSE DE MÉTODOS DE PAGO
+          pw.Container(
+            padding: const pw.EdgeInsets.all(20),
+            decoration: pw.BoxDecoration(
+              gradient: const pw.LinearGradient(
+                colors: [PdfColors.pink900, PdfColors.pink700],
+              ),
+              borderRadius: pw.BorderRadius.circular(8),
+            ),
+            child: pw.Column(
+              children: [
+                pw.Text(
+                  'TOTAL DEL PERÍODO',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    color: PdfColors.white,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+                pw.Text(
+                  PdfBaseService.currencyFormat.format(totalSales),
+                  style: pw.TextStyle(
+                    fontSize: 28,
+                    color: PdfColors.white,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  '$totalTransactions transacciones',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    color: PdfColors.white.shade(0.8),
+                  ),
+                ),
+                
+                // Separador
+                pw.Container(
+                  margin: const pw.EdgeInsets.symmetric(vertical: 12),
+                  height: 1,
+                  color: PdfColors.white.shade(0.3),
+                ),
+
+                // Desglose por método de pago
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildPaymentBreakdown('Yape', totalYape, countYape),
+                    pw.Container(
+                      width: 1,
+                      height: 30,
+                      color: PdfColors.white.shade(0.3),
+                    ),
+                    _buildPaymentBreakdown('Efectivo', totalEfectivo, countEfectivo),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          pw.SizedBox(height: 20),
+
+          // DESGLOSE POR DÍA
+          pw.Text(
+            'VENTAS DIARIAS',
+            style: pw.TextStyle(
+              fontSize: 12,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+
+          pw.SizedBox(height: 10),
+
+          pw.Table(
+            border: pw.TableBorder.all(color: PdfColors.grey400, width: 1),
+            columnWidths: {
+              0: const pw.FlexColumnWidth(2),
+              1: const pw.FlexColumnWidth(2),
+              2: const pw.FlexColumnWidth(1.5),
+              3: const pw.FlexColumnWidth(2),
+            },
+            children: [
+              pw.TableRow(
+                decoration: pw.BoxDecoration(color: PdfColors.grey300),
+                children: [
+                  PdfBaseService.buildTableCell('FECHA', isHeader: true),
+                  PdfBaseService.buildTableCell('DÍA', isHeader: true),
+                  PdfBaseService.buildTableCell('VENTAS', isHeader: true, isCenter: true),
+                  PdfBaseService.buildTableCell('TOTAL', isHeader: true),
+                ],
+              ),
+              ...dailySalesList.map((day) {
+                final dayName = DateFormat('EEEE', 'es').format(day.fecha);
+
+                return pw.TableRow(
+                  children: [
+                    PdfBaseService.buildTableCell(
+                      PdfBaseService.dateFormat.format(day.fecha),
+                    ),
+                    PdfBaseService.buildTableCell(
+                      dayName.substring(0, 1).toUpperCase() + dayName.substring(1),
+                      isBold: true,
+                    ),
+                    PdfBaseService.buildTableCell(
+                      '${day.cantidadVentas}',
+                      isCenter: true,
+                    ),
+                    PdfBaseService.buildTableCell(
+                      PdfBaseService.currencyFormat.format(day.total),
+                      isBold: true,
+                    ),
+                  ],
+                );
+              }).toList(),
+            ],
+          ),
+
+          pw.SizedBox(height: 20),
+
+          // Footer
+          PdfBaseService.buildFooter(
+            summary: 'Total de ventas: $totalTransactions | Días: ${dailySalesList.length}',
+          ),
+        ],
+      ),
+    );
+
+    await PdfBaseService.savePdf(
+      pdf,
+      'resumen_completo_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    );
+  }
+
+  // Helper para desglose de método de pago en PDF
+  static pw.Widget _buildPaymentBreakdown(
+    String label,
+    double amount,
+    int count,
+  ) {
+    return pw.Column(
+      children: [
+        pw.Text(
+          label,
+          style: pw.TextStyle(
+            fontSize: 10,
+            color: PdfColors.white.shade(0.8),
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: 4),
+        pw.Text(
+          PdfBaseService.currencyFormat.format(amount),
+          style: pw.TextStyle(
+            fontSize: 16,
+            color: PdfColors.white,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: 2),
+        pw.Text(
+          '$count ventas',
+          style: pw.TextStyle(
+            fontSize: 8,
+            color: PdfColors.white.shade(0.7),
+          ),
+        ),
+      ],
     );
   }
 }

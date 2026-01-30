@@ -62,10 +62,10 @@ class MyApp extends StatelessWidget {
         '/notifications': (context) => const NotificationsScreen(),
         '/reports': (context) => const ReportsScreen(),
         '/reports/low-stock': (context) => const LowStockScreen(),
-        '/reports/sales-summary': (context) => const SalesSummaryScreen(),
+        '/reports/sales-summary': (context) => const SalesReportScreen(),
         '/reports/top-products': (context) => const TopProductsScreen(),
-        '/reports/daily-sales': (context) => const DailySalesScreen(),
         '/reports/top-services': (context) => const TopServicesScreen(),
+        '/reports/worker-sales': (context) => const WorkerSalesReportScreen(),
       },
     );
   }

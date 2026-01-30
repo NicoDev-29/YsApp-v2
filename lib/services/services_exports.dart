@@ -4,5 +4,7 @@ export 'inventory_service.dart';
 export 'sales_service.dart';
 export 'pdf/pdf_base_service.dart';
 export 'pdf/pdf_service.dart';
+export 'pdf/inventory_pdf_service.dart';
+export 'pdf/worker_sales_pdf_service.dart';
 export 'notification_service.dart';
 export 'connectivity_service.dart';

@@ -21,7 +21,7 @@ class AuthService {
     );
   }
 
-  // REGISTRO: Usa instancia secundaria para no cerrar sesión del admin
+  // REGISTRO: 
   Future<String> createUserWithEmailPasswordSecondary(
     String email,
     String password,

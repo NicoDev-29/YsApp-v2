@@ -8,7 +8,7 @@ class UserModel {
   final String idRol; // 'admin' o 'personal'
   final bool activo;
   final DateTime? createdAt;
-  final String? fcmToken; // ✅ NUEVO: Token para notificaciones push
+  final String? fcmToken; // 
 
   UserModel({
     required this.id,
@@ -18,7 +18,7 @@ class UserModel {
     required this.idRol,
     this.activo = true,
     this.createdAt,
-    this.fcmToken, // ✅ NUEVO
+    this.fcmToken, //
   });
 
   // Factory desde Firestore
@@ -34,7 +34,7 @@ class UserModel {
       createdAt: data['createdAt'] != null 
           ? (data['createdAt'] as Timestamp).toDate() 
           : null,
-      fcmToken: data['fcmToken'], // ✅ NUEVO
+      fcmToken: data['fcmToken'], // 
     );
   }
 
@@ -49,7 +49,7 @@ class UserModel {
       'createdAt': createdAt != null 
           ? Timestamp.fromDate(createdAt!) 
           : FieldValue.serverTimestamp(),
-      if (fcmToken != null) 'fcmToken': fcmToken, // ✅ NUEVO: Solo si existe
+      if (fcmToken != null) 'fcmToken': fcmToken, //
     };
   }
 
