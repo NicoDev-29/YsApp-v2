@@ -48,6 +48,42 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1016582440272:android:329025a15ab25d86ce1855",
+        "android_client_info": {
+          "package_name": "com.nicol.ysapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1016582440272-j7fpf3lmb1uq610palqi1m8l17h7360q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAidzbfPXzd_XxRGwvRB2kNQzJbxgKJed8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1016582440272-j7fpf3lmb1uq610palqi1m8l17h7360q.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1016582440272-6ponb5l72loo9uhflpuilupg1luitrtj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ysaApp"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

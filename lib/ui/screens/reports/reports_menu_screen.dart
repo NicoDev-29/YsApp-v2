@@ -72,13 +72,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                     const SizedBox(height: 20),
                     
-                    // 3. Servicios más vendidos ← NUEVA CARD
+                    // 3. Servicios más vendidos 
                     _buildReportCard(
                       context: context,
                       icon: Icons.spa_outlined,
                       iconColor: Colors.black87,
-                      iconBackgroundColor: const Color(0xFF81C784),
-                      borderColor: const Color(0xFF81C784),
+                      iconBackgroundColor: const Color(0xFF80B2CB),
+                      borderColor: const Color(0xFF80B2CB),
                       title: 'Servicios Más Vendidos',
                       description: 'Identifica los servicios más solicitados por tus clientes',
                       onTap: () {
@@ -86,7 +86,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // 4. Resumen de ventas
                     _buildReportCard(
                       context: context,
@@ -102,19 +102,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                     const SizedBox(height: 20),
                     
-                    // 5. Ventas diarias por salón
+                    // 5. Ventas por trabajadora 
                     _buildReportCard(
                       context: context,
-                      icon: Icons.calendar_today_rounded,
+                      icon: Icons.person_outline_rounded,
                       iconColor: Colors.black87,
-                      iconBackgroundColor: const Color(0xFF80B2CB),
-                      borderColor: const Color(0xFF80B2CB),
-                      title: 'Ventas Diarias Por Salón',
-                      description: 'Analiza el rendimiento diario de cada ubicación',
+                      iconBackgroundColor: const Color(0xFFE87D5C),
+                      borderColor: const Color(0xFFE87D5C),
+                      title: 'Ventas por Trabajadora',
+                      description: 'Detalle de ventas por período',
                       onTap: () {
-                        Navigator.pushNamed(context, '/reports/daily-sales');
+                        Navigator.pushNamed(context, '/reports/worker-sales');
                       },
                     ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),

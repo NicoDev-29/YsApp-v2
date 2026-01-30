@@ -156,17 +156,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     if (isAdmin) {
                       // ADMIN: Ve todas las ventas del salón seleccionado
                       querySalonId = _selectedSalonFilter;
-                      queryUserId = null; // ← NO filtrar por usuario
+                      queryUserId = null;
                     } else {
                       // PERSONAL: Ve solo sus propias ventas de su salón
                       querySalonId = authProvider.currentUser?.idSalon;
-                      queryUserId = authProvider.currentUser?.id; // ← SÍ filtrar por usuario
+                      queryUserId = authProvider.currentUser?.id;
                     }
-
-                    // DEBUG: Descomentar estas líneas si necesitas debuggear
-                    // print('🔍 [TransactionsScreen] isAdmin: $isAdmin');
-                    // print('🔍 [TransactionsScreen] querySalonId: $querySalonId');
-                    // print('🔍 [TransactionsScreen] queryUserId: $queryUserId');
 
                     return StreamBuilder<List<SaleModel>>(
                       stream: salesProvider.getSales(
@@ -233,46 +228,46 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         final diasOrdenados = ventasPorDia.keys.toList()
                           ..sort((a, b) => b.compareTo(a));
 
-                        return Column(
-                          children: [
-                            SummaryCard(
-                              totalIngresos: totalIngresos,
-                              cantidadTransacciones: sales.length,
-                            ),
-                            Expanded(
-                              child: ListView.builder(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                itemCount: diasOrdenados.length,
-                                itemBuilder: (context, index) {
-                                  final diaKey = diasOrdenados[index];
-                                  final ventasDelDia = ventasPorDia[diaKey]!;
-                                  final fecha = DateTime.parse(diaKey);
+                        return ListView.builder(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          itemCount: diasOrdenados.length + 1, // +1 para la SummaryCard
+                          itemBuilder: (context, index) {
+                            // Primer item: SummaryCard
+                            if (index == 0) {
+                              return SummaryCard(
+                                totalIngresos: totalIngresos,
+                                cantidadTransacciones: sales.length,
+                                sales: sales,
+                              );
+                            }
 
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      DateHeader(
-                                        date: fecha,
-                                        itemCount: ventasDelDia.length,
+                            // Resto de items: Transacciones agrupadas por día
+                            final diaKey = diasOrdenados[index - 1];
+                            final ventasDelDia = ventasPorDia[diaKey]!;
+                            final fecha = DateTime.parse(diaKey);
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                DateHeader(
+                                  date: fecha,
+                                  itemCount: ventasDelDia.length,
+                                ),
+                                ...ventasDelDia.map((sale) => TransactionCard(
+                                  sale: sale,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            TransactionDetailScreen(sale: sale),
                                       ),
-                                      ...ventasDelDia.map((sale) => TransactionCard(
-                                        sale: sale,
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  TransactionDetailScreen(sale: sale),
-                                            ),
-                                          );
-                                        },
-                                      )),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
+                                    );
+                                  },
+                                )),
+                              ],
+                            );
+                          },
                         );
                       },
                     );

@@ -72,7 +72,7 @@ class _TopServicesScreenState extends State<TopServicesScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // ✅ FILTROS
+              // FILTROS
               Container(
                 color: Colors.white,
                 padding: const EdgeInsets.all(16),
@@ -259,7 +259,7 @@ class _TopServicesScreenState extends State<TopServicesScreen> {
                 ),
               ),
 
-              // ✅ LISTA DE SERVICIOS
+              //  LISTA DE SERVICIOS
               Expanded(
                 child: StreamBuilder<List<SaleModel>>(
                   stream: salesProvider.getSales(
@@ -300,7 +300,7 @@ class _TopServicesScreenState extends State<TopServicesScreen> {
                       );
                     }
 
-                    // ✅ FILTRAR SOLO SERVICIOS (tipo = 'servicio')
+                    // FILTRAR SOLO SERVICIOS (tipo = 'servicio')
                     final serviceSalesMap = <String, ServiceSalesData>{};
                     for (var sale in sales) {
                       for (var item in sale.items) {
@@ -466,7 +466,7 @@ class _TopServicesScreenState extends State<TopServicesScreen> {
             ? null
             : FloatingActionButton.extended(
                 onPressed: _generatePdf,
-                backgroundColor:  const Color(0xFF81C784),
+                backgroundColor:  const Color(0xFF80B2CB),
                 foregroundColor: Colors.white,
                 icon: const Icon(Icons.picture_as_pdf),
                 label: const Text('Exportar PDF', style: TextStyle(fontWeight: FontWeight.w600)),

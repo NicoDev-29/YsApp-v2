@@ -29,12 +29,12 @@ class SalesProvider extends ChangeNotifier {
     final currentUserId = authProvider.currentUser?.id;
 
     if (_lastUserId != null && _lastUserId != currentUserId) {
-      print('🔄 [SalesProvider] Cambio de usuario detectado');
-      print('👤 [SalesProvider] Usuario anterior: $_lastUserId');
-      print('👤 [SalesProvider] Usuario actual: $currentUserId');
-      print('🛒 [SalesProvider] Items en carrito: ${_cartItems.length}');
+      print(' [SalesProvider] Cambio de usuario detectado');
+      print(' [SalesProvider] Usuario anterior: $_lastUserId');
+      print(' [SalesProvider] Usuario actual: $currentUserId');
+      print('[SalesProvider] Items en carrito: ${_cartItems.length}');
       clearCart();
-      print('✅ [SalesProvider] Carrito limpiado');
+      print('[SalesProvider] Carrito limpiado');
     }
 
     _lastUserId = currentUserId;

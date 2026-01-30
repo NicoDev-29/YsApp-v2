@@ -1,4 +1,4 @@
-package com.example.ysa_app
+package com.nicol.ysapp
 
 import io.flutter.embedding.android.FlutterActivity
 
