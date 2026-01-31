@@ -54,11 +54,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       scaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('¡Inicio de sesión exitoso!'),
           backgroundColor: AppColors.activeGreen,
           behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
+          duration: Duration(seconds: 2),
         ),
       );
       await Future.delayed(const Duration(milliseconds: 300));
